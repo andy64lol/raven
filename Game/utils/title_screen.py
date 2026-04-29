@@ -1,10 +1,12 @@
 import pygame
 import random
 import math
+import webbrowser
 
 from Game.utils.utils import load_image, SpriteSheet
 from Game.utils.save_game import has_save, get_all_saves, get_save_metadata, NUM_SLOTS
 
+PLAY_BUTTON_URL = "https://music.youtube.com/watch?v=dQw4w9WgXcQ"
 
 class Particle:
     """Floating crystal/dust particle with glow effect."""
@@ -42,15 +44,18 @@ class Particle:
             (int(pulse_size * 6), int(pulse_size * 6)), pygame.SRCALPHA
         )
         center = int(pulse_size * 3)
+
         pygame.draw.circle(
             glow_surf, (*self.color, alpha // 4), (center, center), int(pulse_size * 3)
         )
+
         pygame.draw.circle(
             glow_surf,
             (*self.color, alpha // 2),
             (center, center),
             int(pulse_size * 1.5),
         )
+
         pygame.draw.circle(
             glow_surf, (255, 255, 255, alpha), (center, center), max(1, int(pulse_size))
         )
@@ -58,7 +63,6 @@ class Particle:
 
     def is_dead(self, screen_height):
         return self.life <= 0 or self.y < -20
-
 
 class TitleScreen:
     def __init__(self, game):
@@ -68,7 +72,7 @@ class TitleScreen:
         self.screen_height = self.screen.get_height()
         self.fonts = game.fonts
 
-        self.fade_in_opacity = 255  # Start fully black
+        self.fade_in_opacity = 255
         self.fade_in_speed = 255 / (1.5 * 60)
         self.fading_out = False
         self.fade_out_opacity = 0
@@ -90,6 +94,7 @@ class TitleScreen:
         self.idle_frame_duration = 15
         self.idle_scale = 3
         self.idle_pos = (self.screen_width // 2, self.screen_height // 2 + 40)
+        self._character_rect: pygame.Rect | None = None
 
         self.title_text = "RAVEN"
         self.title_font_size = 36
@@ -123,13 +128,14 @@ class TitleScreen:
                 "y": buttons_y_start + idx * (self.button_height + self.button_gap),
             })
         self.hovered_button = None
-        self.selected_index = 0  # Keyboard-selected button
+        self.selected_index = 0
         self.button_glow = 0
 
         self.show_slot_picker = False
         self.slot_selected_index = 0
         self._slot_button_rects: list[pygame.Rect] = []
         self._slot_back_rect: pygame.Rect | None = None
+
         self._button_font = pygame.font.Font("Game/assets/fonts/workbench.ttf", 14)
 
         try:
@@ -153,6 +159,7 @@ class TitleScreen:
         """Pre-render a soft radial darkening overlay applied on top of the screen."""
         sw, sh = self.screen_width, self.screen_height
         vignette = pygame.Surface((sw, sh), pygame.SRCALPHA)
+
         steps = 28
         max_alpha = 140
         for i in range(steps):
@@ -172,8 +179,10 @@ class TitleScreen:
             ring = pygame.Surface((sw, sh), pygame.SRCALPHA)
             pygame.draw.ellipse(ring, (0, 0, 0, alpha), rect)
             vignette.blit(ring, (0, 0), special_flags=pygame.BLEND_RGBA_MAX)
+
         final = pygame.Surface((sw, sh), pygame.SRCALPHA)
         final.fill((0, 0, 0, max_alpha))
+
         final.blit(vignette, (0, 0), special_flags=pygame.BLEND_RGBA_SUB)
         return final
 
@@ -209,6 +218,7 @@ class TitleScreen:
         return crystals
 
     def update(self, dt):
+
         if self.fade_in_opacity > 0:
             self.fade_in_opacity -= self.fade_in_speed
             if self.fade_in_opacity < 0:
@@ -254,6 +264,7 @@ class TitleScreen:
         return None
 
     def draw(self):
+
         self.screen.fill((5, 5, 15))
 
         for i, layer in enumerate(self.parallax_layers):
@@ -270,10 +281,10 @@ class TitleScreen:
         for p in self.particles:
             p.draw(self.screen)
 
-
         for c in self.decor_crystals:
             bob_y = math.sin(c["bob"]) * 4
             pos = (c["pos"][0], c["pos"][1] + bob_y)
+
             glow_size = 40 + math.sin(c["glow"]) * 10
             glow_surf = pygame.Surface((glow_size, glow_size), pygame.SRCALPHA)
             pygame.draw.circle(
@@ -300,6 +311,7 @@ class TitleScreen:
             scaled.set_colorkey((0, 0, 0))
             rect = scaled.get_rect(center=self.idle_pos)
             self.screen.blit(scaled, rect)
+            self._character_rect = rect
 
         pulse_scale = 1.0 + math.sin(self.title_pulse) * 0.03
         title_surf = self.title_font.render(self.title_text, True, (220, 240, 255))
@@ -353,7 +365,7 @@ class TitleScreen:
         demo_rect = demo_scaled.get_rect(
             topleft=(title_rect.right + 12, title_rect.top + 8)
         )
-        
+
         demo_shadow = self.demo_tag_font.render("¡Demo!", True, (80, 60, 0))
         demo_shadow_scaled = pygame.transform.scale(
             demo_shadow,
@@ -366,7 +378,7 @@ class TitleScreen:
             topleft=(demo_rect.left + 2, demo_rect.top + 2)
         )
         self.screen.blit(demo_shadow_scaled, demo_shadow_rect)
-        
+
         demo_glow_alpha = int(30 + math.sin(self.title_pulse * 1.5) * 15)
         demo_glow_surf = pygame.Surface(
             (demo_scaled.get_width() + 12, demo_scaled.get_height() + 12),
@@ -381,7 +393,7 @@ class TitleScreen:
             demo_glow_surf,
             (demo_rect.x - 6, demo_rect.y - 6),
         )
-        
+
         self.screen.blit(demo_scaled, demo_rect)
 
         subtitle_font = pygame.font.Font("Game/assets/fonts/workbench.ttf", 11)
@@ -391,7 +403,7 @@ class TitleScreen:
         subtitle_rect = subtitle.get_rect(
             center=(self.screen_width // 2, self.title_base_y + 50)
         )
-        
+
         subtitle_glow = pygame.Surface(
             (subtitle_rect.width + 20, subtitle_rect.height + 8),
             pygame.SRCALPHA,
@@ -406,7 +418,7 @@ class TitleScreen:
             subtitle_glow,
             (subtitle_rect.x - 10, subtitle_rect.y - 4),
         )
-        
+
         self.screen.blit(subtitle, subtitle_rect)
 
         mx, my = pygame.mouse.get_pos()
@@ -479,6 +491,7 @@ class TitleScreen:
             )
             self.screen.blit(plate_scaled, (scaled_rect.x, scaled_rect.y))
             if active:
+
                 tint = pygame.Surface(plate_scaled.get_size(), pygame.SRCALPHA)
                 tint.fill((100, 200, 255, 70))
                 self.screen.blit(tint, (scaled_rect.x, scaled_rect.y))
@@ -486,6 +499,7 @@ class TitleScreen:
                     self.screen, border_color, scaled_rect, width=3, border_radius=8
                 )
             else:
+
                 pygame.draw.rect(
                     self.screen, (border_color[0]//2, border_color[1]//2, border_color[2]//2),
                     scaled_rect, width=1, border_radius=8
@@ -523,6 +537,7 @@ class TitleScreen:
         hint_rect = hint_surf.get_rect(
             center=(self.screen_width // 2, self.screen_height - 18)
         )
+
         pad_x, pad_y = 20, 8
         pill = pygame.Rect(
             hint_rect.left - pad_x,
@@ -531,6 +546,7 @@ class TitleScreen:
             hint_rect.height + pad_y * 2,
         )
         pill_surf = pygame.Surface(pill.size, pygame.SRCALPHA)
+
         pygame.draw.rect(
             pill_surf, (0, 0, 0, 140), pill_surf.get_rect(), border_radius=10
         )
@@ -542,6 +558,7 @@ class TitleScreen:
 
         ver_surf = self._footer_font.render(self._version_label, True, (130, 160, 200))
         ver_rect = ver_surf.get_rect(topleft=(self.screen_width - ver_surf.get_width() - 16, 14))
+
         ver_bg = pygame.Surface((ver_rect.width + 8, ver_rect.height + 4), pygame.SRCALPHA)
         pygame.draw.rect(ver_bg, (0, 0, 0, 80), ver_bg.get_rect(), border_radius=4)
         self.screen.blit(ver_bg, (ver_rect.x - 4, ver_rect.y - 2))
@@ -550,6 +567,7 @@ class TitleScreen:
     def move_selection(self, delta):
         """Keyboard navigation between buttons (or slots when picker is open)."""
         if self.show_slot_picker:
+
             total = NUM_SLOTS + 1
             self.slot_selected_index = (self.slot_selected_index + delta) % total
             return
@@ -575,6 +593,7 @@ class TitleScreen:
     def _open_slot_picker(self):
         """Reveal the save-slot selection overlay."""
         self.show_slot_picker = True
+
         self.slot_selected_index = 0
         for s in range(NUM_SLOTS):
             if has_save(s):
@@ -591,7 +610,7 @@ class TitleScreen:
             self.show_slot_picker = False
             return
         if not has_save(index):
-            return  # empty slot — don't load
+            return
         self.fading_out = True
         self.next_state = f"continue:{index}"
         self.show_slot_picker = False
@@ -602,10 +621,12 @@ class TitleScreen:
             return None
         mx, my = pygame.mouse.get_pos()
         if self.show_slot_picker:
+
             for i, rect in enumerate(self._slot_button_rects):
                 if rect.collidepoint(mx, my):
                     self._activate_slot(i)
                     return None
+
             if self._slot_back_rect and self._slot_back_rect.collidepoint(mx, my):
                 self.show_slot_picker = False
             return None
@@ -619,6 +640,9 @@ class TitleScreen:
                 self.fading_out = True
                 self.next_state = btn["action"]
                 return None
+        if self._character_rect and self._character_rect.collidepoint(mx, my):
+            webbrowser.open(PLAY_BUTTON_URL)
+            return None
         return None
 
     def handle_escape(self):
@@ -665,11 +689,10 @@ class TitleScreen:
             self._slot_button_rects.append(row)
 
             meta = get_save_metadata(i)
-            empty = meta is None
             hovered = row.collidepoint(mx, my)
             focused = (self.slot_selected_index == i)
 
-            if empty:
+            if meta is None:
                 bg = (28, 32, 44)
                 border = (60, 70, 90)
             elif hovered or focused:
@@ -682,11 +705,11 @@ class TitleScreen:
             pygame.draw.rect(self.screen, border, row, 2, border_radius=8)
 
             label = f"Slot {i + 1}"
-            label_color = (180, 195, 215) if not empty else (120, 130, 150)
+            label_color = (120, 130, 150) if meta is None else (180, 195, 215)
             lbl_surf = small_font.render(label, True, label_color)
             self.screen.blit(lbl_surf, (row.left + 16, row.top + 8))
 
-            if empty:
+            if meta is None:
                 hint = meta_font.render("— Vacío —", True, (110, 120, 140))
                 hint_rect = hint.get_rect(center=row.center)
                 self.screen.blit(hint, hint_rect)
