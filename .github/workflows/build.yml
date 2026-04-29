@@ -26,11 +26,11 @@ jobs:
 
       - name: Compile EXE
         run: |
-          python -m nuitka main.py ^
-            --standalone ^
-            --onefile ^
-            --enable-plugin=pygame ^
-            --output-filename=Raven.exe ^
+          python -m nuitka main.py `
+            --standalone `
+            --onefile `
+            --enable-plugin=pygame `
+            --output-filename=Raven.exe `
             --output-dir=dist
 
       - name: Upload EXE
@@ -148,7 +148,8 @@ jobs:
             --platform linux/arm64 \
             -v "$PWD:/app" -w /app \
             python:3.11 \
-            bash -c "pip install pygame nuitka && \
+            bash -c "pip install --upgrade pip setuptools wheel && \
+              pip install pygame nuitka && \
               python -m nuitka main.py \
                 --standalone \
                 --enable-plugin=pygame \
