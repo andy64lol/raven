@@ -1,0 +1,172 @@
+name: BUILDEALO CHAVALIN
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pygame nuitka
+
+      - name: Build EXE
+        run: |
+          python -m nuitka main.py ^
+            --onefile ^
+            --enable-plugin=pygame ^
+            --output-filename=Raven.exe ^
+            --output-dir=dist
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: raven-windows
+          path: dist/Raven.exe
+
+  mac:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pygame nuitka
+
+      - name: Build APP
+        run: |
+          python -m nuitka main.py \
+            --standalone \
+            --enable-plugin=pygame \
+            --macos-create-app-bundle \
+            --output-filename=Raven \
+            --output-dir=dist
+
+      - name: Upload APP
+        uses: actions/upload-artifact@v4
+        with:
+          name: raven-mac
+          path: dist/*
+
+  linux:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install base deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fuse libfuse2 qemu-user-static
+          pip install pygame nuitka
+
+      - name: Build AMD64
+        if: matrix.arch == 'amd64'
+        run: |
+          python -m nuitka main.py \
+            --standalone \
+            --enable-plugin=pygame \
+            --output-filename=Raven \
+            --output-dir=dist_amd64
+
+      - name: Build DEB AMD64
+        if: matrix.arch == 'amd64'
+        run: |
+          mkdir -p package/DEBIAN
+          mkdir -p package/usr/bin
+
+          cp -r dist_amd64/main.dist/* package/usr/bin/
+
+          echo "Package: raven
+Version: 1.0
+Architecture: amd64
+Maintainer: andy64lol
+Description: Raven, un demo del juego" > package/DEBIAN/control
+
+          dpkg-deb --build package raven_amd64.deb
+
+      - name: Build ARM64
+        if: matrix.arch == 'arm64'
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v $PWD:/app -w /app python:3.11 bash -c "
+              pip install pygame nuitka &&
+              python -m nuitka main.py \
+                --standalone \
+                --enable-plugin=pygame \
+                --output-filename=Raven \
+                --output-dir=dist_arm64
+            "
+
+      - name: Build DEB ARM64
+        if: matrix.arch == 'arm64'
+        run: |
+          mkdir -p package_arm64/DEBIAN
+          mkdir -p package_arm64/usr/bin
+
+          cp -r dist_arm64/main.dist/* package_arm64/usr/bin/
+
+          echo "Package: raven
+Version: 1.0
+Architecture: arm64
+Maintainer: andy64lol
+Description: Raven, un demo del juego" > package_arm64/DEBIAN/control
+
+          dpkg-deb --build package_arm64 raven_arm64.deb
+
+# =========================
+# 🐧 APPIMAGE (AMD64)
+# =========================
+      - name: Build AppImage (amd64 only)
+        if: matrix.arch == 'amd64'
+        run: |
+          wget -q https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+          mkdir -p AppDir/usr/bin
+          cp -r dist_amd64/main.dist/* AppDir/usr/bin/
+
+          echo '[Desktop Entry]
+          Name=Raven
+          Exec=Raven
+          Type=Application
+          Categories=Game;' > AppDir/raven.desktop
+
+          chmod +x appimagetool-x86_64.AppImage
+          ./appimagetool-x86_64.AppImage AppDir Raven.AppImage
+
+# =========================
+# 📦 UPLOADS
+# =========================
+      - name: Upload Linux builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: raven-linux-${{ matrix.arch }}
+          path: |
+            raven_*.deb
+            Raven.AppImage
