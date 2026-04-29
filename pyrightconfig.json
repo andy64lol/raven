@@ -1,0 +1,12 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "include": ["Game", "main.py"],
+  "exclude": ["**/__pycache__", ".venv", ".pythonlibs"],
+  "reportMissingImports": "error",
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalIterable": "warning",
+  "reportIncompatibleMethodOverride": "warning",
+  "reportAttributeAccessIssue": "warning"
+}

@@ -1,0 +1,13 @@
+{
+    "resolution": [1280, 720],
+    "resizable": true,
+    "min_resolution": [640, 480],
+    "tilemaps": {
+        "church": "level/church.json"
+    },
+    "debug": {
+        "show_collision_boxes": false,
+        "show_sensors": false,
+        "show_platform_hitboxes": false
+    }
+}

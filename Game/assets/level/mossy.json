@@ -1,0 +1,24 @@
+{
+  "width": 10,
+  "height": 10,
+  "tile_size": 48,
+  "environment": "mossy",
+  "layers": [
+    {
+      "type": "tilelayer",
+      "name": "Ground",
+      "data": [
+        {"x": 1, "y": 10, "z": 5, "w": 10, "h": 1, "type": "platform" ,"variant": 1, "properties": ["solid", "repeat", "dark"], "offset":  [0, 0],
+          "render_cut": [1, 0], "solid_depth": 4, "dark_depth": 2
+        }
+      ]
+    },
+    {
+      "type": "sensor_layer",
+      "name": "Sensors",
+      "data": [{"x": 6, "y": 2, "z": 5, "w": 0.1, "h": 10,
+          "id":  1, "type": "render", "properties": ["toggle_render:cave"], "offset": [0, 0]}
+      ]
+    }
+  ]
+}

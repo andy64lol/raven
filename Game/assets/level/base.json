@@ -1,0 +1,36 @@
+{
+  "width": 20,
+  "height": 15,
+  "tile_size": 48,
+  "environment": "cave",
+  "layers": [
+    {
+        "type": "chests",
+        "name": "Chests",
+        "data": [
+
+        ]
+    },
+    {
+        "type": "enemies",
+        "name": "Enemies",
+        "data": [
+
+            ]
+    },
+    {
+      "type": "tilelayer",
+      "name": "Ground",
+      "data": [
+
+      ]
+    },
+    {
+      "type": "sensor_layer",
+      "name": "Sensors",
+      "data": [
+
+      ]
+    }
+  ]
+}
