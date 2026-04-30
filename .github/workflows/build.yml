@@ -162,7 +162,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pygame-ce nuitka ordered-set zstandard
-
       - name: Build with Nuitka
         run: |
           python -m nuitka \
@@ -177,18 +176,26 @@ jobs:
             --product-version=${APP_VERSION} \
             --file-description=${APP_NAME} \
             main.py
+          
+          # List build directory contents for debugging
+          echo "Build directory contents:"
+          ls -la build/
 
       - name: Package .app into a zip
         run: |
           mkdir -p artifacts
           cd build
-          zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "${APP_NAME}.app"
-
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-macos-app
-          path: artifacts/*.zip
+          
+          # Check if .app bundle exists, if not look for .dist
+          if [ -d "${APP_NAME}.app" ]; then
+            zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "${APP_NAME}.app"
+          elif [ -d "main.dist" ]; then
+            # If only .dist exists, create the bundle structure or zip the dist
+            zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "main.dist"
+          else
+            echo "ERROR: Neither ${APP_NAME}.app nor main.dist found"
+            exit 1
+          fi
 
   release:
     name: Attach to Release
