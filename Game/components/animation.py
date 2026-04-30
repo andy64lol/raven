@@ -6,7 +6,7 @@ from Game.utils.utils import SpriteSheet
 class Animation(Component):
     def __init__(self, animations, current="idle"):
         super().__init__()
-        self.animations = animations  # dict of name: (spritesheet, frame_duration, loop)
+        self.animations = animations
         self.current = current
         self.frame = 0
         self.image = None
@@ -23,5 +23,5 @@ class Animation(Component):
     def update(self, dt):
         if self.current in self.animations:
             _, frame_duration, _ = self.animations[self.current]
-            self.frame += frame_duration / 60 * 60 * dt  # assuming 60 fps
+            self.frame += frame_duration / 60 * 60 * dt
             self.update_image()

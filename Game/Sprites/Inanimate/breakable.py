@@ -2,7 +2,6 @@ from typing import Any
 import pygame
 from Game.Sprites.sprite import Sprite
 
-
 class Breakable(Sprite):
     tilemap: Any
 

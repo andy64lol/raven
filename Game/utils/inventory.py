@@ -7,20 +7,18 @@ Press C or click the CRAFT button to open the crafting screen.
 from __future__ import annotations
 import pygame
 
-
 _SLOT_SIZE = 56
 _SLOT_PAD = 8
 _COLS = 6
 _ROWS = 4
-
 
 class InventoryOverlay:
     """Draws a full-screen inventory panel over the game world."""
 
     def __init__(self, game):
         self.game = game
-        self._font: pygame.font.Font = None  # type: ignore[assignment]
-        self._small_font: pygame.font.Font = None  # type: ignore[assignment]
+        self._font: pygame.font.Font = None
+        self._small_font: pygame.font.Font = None
         self._clicked_slot: int | None = None
 
     def _ensure_fonts(self):

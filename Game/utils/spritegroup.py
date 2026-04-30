@@ -13,7 +13,6 @@ class SpriteGroup:
         else:
             self.sprite_dict[len(self.sprite_dict)] = sprite
 
-
     def remove(self, *sprites):
         for sprite in sprites:
             if hasattr(sprite, 'id') and sprite.id in self.sprite_dict:

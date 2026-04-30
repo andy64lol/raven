@@ -22,7 +22,6 @@ SHAPE_NAMES = [
 _SHAPE_MASK_CACHE = {}
 _SHAPE_SUBRECT_CACHE = {}
 
-
 def get_shape_mask(shape, tile_size):
     """Return a cached SRCALPHA mask Surface (white where tile is visible, transparent elsewhere)
     that can be blitted onto a tile image with BLEND_RGBA_MULT to clip it to the shape."""
@@ -62,7 +61,6 @@ def get_shape_mask(shape, tile_size):
     _SHAPE_MASK_CACHE[key] = mask
     return mask
 
-
 def get_shape_subrects(shape, tile_size):
     """Return a list of (x, y, w, h) tuples (tile-local coords) describing the solid AABBs
     that make up the shape. Slopes are approximated by 4 stacked rectangles."""
@@ -71,7 +69,7 @@ def get_shape_subrects(shape, tile_size):
         return _SHAPE_SUBRECT_CACHE[key]
     ts = int(tile_size)
     half = ts // 2
-    other_half = ts - half  # handle odd tile sizes safely
+    other_half = ts - half
     rects = []
     if shape == "full" or not shape:
         rects = [(0, 0, ts, ts)]
@@ -98,18 +96,18 @@ def get_shape_subrects(shape, tile_size):
             strip_h = ts - i * (ts // steps)
             if strip_h <= 0:
                 continue
-            if shape == "slope_br":  # high at right, low at left, solid is below diagonal
+            if shape == "slope_br":
                 lx = ts - (i + 1) * step_w
                 ly = i * (ts // steps)
                 rects.append((lx, ly, step_w, ts - ly))
-            elif shape == "slope_bl":  # high at left, low at right
+            elif shape == "slope_bl":
                 lx = i * step_w
                 ly = i * (ts // steps)
                 rects.append((lx, ly, step_w, ts - ly))
-            elif shape == "slope_tr":  # solid top-right (hangs from ceiling), high right, low left
+            elif shape == "slope_tr":
                 lx = ts - (i + 1) * step_w
                 rects.append((lx, 0, step_w, strip_h))
-            elif shape == "slope_tl":  # solid top-left
+            elif shape == "slope_tl":
                 lx = i * step_w
                 rects.append((lx, 0, step_w, strip_h))
     else:
@@ -117,9 +115,7 @@ def get_shape_subrects(shape, tile_size):
     _SHAPE_SUBRECT_CACHE[key] = rects
     return rects
 
-
 FLOOR_SLOPE_SHAPES = ("slope_bl", "slope_br")
-
 
 def slope_floor_y(tile_data, world_x, tile_size):
     """Return the world y-coordinate of the slope surface (top of solid) at
@@ -139,10 +135,9 @@ def slope_floor_y(tile_data, world_x, tile_size):
         local_x = ts
     if shape == "slope_bl":
         local_y = local_x
-    else:  # slope_br — ◢ — high at right, low at left. surface_y_local(x) = ts - x
+    else:
         local_y = ts - local_x
     return tile_top + local_y
-
 
 AUTOTILE_MAP = {
     tuple(sorted([(1, 0), (0, 1)])): 0,
@@ -563,7 +558,7 @@ class TileMap:
                         x = cx * ts - camera_offset.x
                         y = cy * ts - camera_offset.y
                         pygame.draw.rect(surface, (0, 0, 0), (x, y, ts, ts))
-                        break  # one dark fill per cell is enough
+                        break
 
         self.chests.draw(surface, camera_offset)
         self.breakables.draw(surface, (camera_offset.x, camera_offset.y))
@@ -830,7 +825,7 @@ class TileMap:
         ts = self.tile_size
         target_wx = (grid_x + 0.5) * ts
         target_wy = (grid_y + 0.5) * ts
-        threshold = ts * 2  # accept clicks within 2 tile-widths
+        threshold = ts * 2
 
         best = None
         best_dist = float("inf")

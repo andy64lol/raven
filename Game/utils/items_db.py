@@ -68,7 +68,6 @@ RECIPES = [
     },
 ]
 
-
 def make_inv_item(key: str, qty: int = 1) -> dict:
     """Return an inventory dict for the named item key."""
     data = ITEMS.get(key, {})
@@ -83,7 +82,6 @@ def make_inv_item(key: str, qty: int = 1) -> dict:
         "icon": None,
     }
 
-
 _TEXTURE_FILES = {
     "sword": "metal_sword.png",
     "tetrahaxal": "tetrahaxal_sword.png",
@@ -94,7 +92,6 @@ _TEXTURE_FILES = {
 
 _TEXTURE_BASE: dict[str, pygame.Surface | None] | None = None
 _SCALED_CACHE: dict[tuple[str, int], pygame.Surface] = {}
-
 
 def _load_base_texture(filename: str) -> pygame.Surface | None:
     """Load (and cache) a raw item texture from Game/assets/items/."""
@@ -115,7 +112,6 @@ def _load_base_texture(filename: str) -> pygame.Surface | None:
             _TEXTURE_BASE[filename] = None
     return _TEXTURE_BASE[filename]
 
-
 def _draw_item_icon(key: str, size: int) -> pygame.Surface:
     """Return an icon surface for an item.
 
@@ -135,7 +131,6 @@ def _draw_item_icon(key: str, size: int) -> pygame.Surface:
             scaled = pygame.transform.scale(base, (size, size))
             _SCALED_CACHE[cache_key] = scaled
             return scaled
-
 
     data = ITEMS.get(key, {})
     color = data.get("color", (160, 160, 160))

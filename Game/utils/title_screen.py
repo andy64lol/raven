@@ -87,11 +87,11 @@ class TitleScreen:
         self.max_particles = 60
 
         self.idle_sheet = SpriteSheet(
-            "little_riven/Idle.png", tile_size=144, colorkey=(0, 0, 0)
+            "raven/sprite_1.webp", tile_size=64
         )
         self.idle_images = self.idle_sheet.get_images_list()
         self.idle_frame = 0
-        self.idle_frame_duration = 15
+        self.idle_frame_duration = 8
         self.idle_scale = 3
         self.idle_pos = (self.screen_width // 2, self.screen_height // 2 + 40)
         self._character_rect: pygame.Rect | None = None

@@ -4,7 +4,6 @@ from Game.utils.items_db import ITEMS, make_inv_item, _draw_item_icon
 
 _ICON_SIZE = 20
 
-
 class Item(Sprite):
     """A world-space item drop the player can walk over to collect.
 

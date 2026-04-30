@@ -10,7 +10,6 @@ ground-walking `Enemy` (PhysicsSprite) and the `FlyingEnemy` (Sprite).
 from typing import Any
 import pygame
 
-
 class EnemyCombatMixin:
     rect: pygame.Rect
     vel: Any

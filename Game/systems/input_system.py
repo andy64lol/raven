@@ -23,7 +23,7 @@ class InputSystem(System):
                 if self.keys[pygame.K_d]:
                     vel.vx = 200
                     moving = True
-                if self.keys[pygame.K_w] and vel.vy == 0:  # Only jump if on ground
+                if self.keys[pygame.K_w] and vel.vy == 0:
                     vel.vy = -300
 
                 if anim:

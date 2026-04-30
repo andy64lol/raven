@@ -21,17 +21,15 @@ import pygame
 from Game.Sprites.sprite import Sprite
 from Game.Sprites.Enemies._combat import EnemyCombatMixin
 
-
 _BOSS_BASE = os.path.join(
     "Game", "assets", "monsters", "boss_spritesheet_(undead_executioner)"
 )
 
-_BOSS_FRAME = 100  # source frame size (px)
+_BOSS_FRAME = 100
 _SUMMON_FRAME = 50
 
-_BOSS_SCALE = 3     # render scale for the executioner (buffed: was 2)
-_SUMMON_SCALE = 2   # render scale for the summoned skeleton
-
+_BOSS_SCALE = 3
+_SUMMON_SCALE = 2
 
 def _slice_sheet(filename, frame_w, frame_h, count, scale=1, colorkey=None):
     """Return up to ``count`` Surfaces sliced left→right, top→bottom from a sheet."""
@@ -55,10 +53,8 @@ def _slice_sheet(filename, frame_w, frame_h, count, scale=1, colorkey=None):
         out.append(frame)
     return out
 
-
 _BOSS_FRAMES: dict | None = None
 _SUMMON_FRAMES: dict | None = None
-
 
 def _load_boss_frames():
     """Lazy-load every executioner animation. Cached after first call."""
@@ -78,7 +74,6 @@ def _load_boss_frames():
     }
     return _BOSS_FRAMES
 
-
 def _load_summon_frames():
     """Lazy-load the summoned skeleton's animations."""
     global _SUMMON_FRAMES
@@ -93,8 +88,6 @@ def _load_summon_frames():
         "death":  _slice_sheet("summonDeath.png",  f, f, 5, s),
     }
     return _SUMMON_FRAMES
-
-
 
 _BOSS_ANIM_MS = {
     "idle":     140,
@@ -116,9 +109,6 @@ _BOSS_LOOP = {
 _SUMMON_ANIM_MS = {"appear": 90, "idle": 140, "death": 110}
 _SUMMON_LOOP = {"appear": False, "idle": True, "death": False}
 
-
-
-
 class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
     """Heavy melee boss with frequent teleports and summoning.
 
@@ -137,12 +127,12 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
 
     SIGHT_RANGE = 850
     ATTACK_RANGE = 150
-    ATTACK_HIT_FRAMES = (4, 5, 6)   # frames during 'attack' that hurt
+    ATTACK_HIT_FRAMES = (4, 5, 6)
     ATTACK_DAMAGE = 2
     TELEPORT_COOLDOWN_MS = 1300
     SUMMON_COOLDOWN_MS = 3200
     ATTACK_COOLDOWN_MS = 750
-    DECISION_PAUSE_MS = 250         # short hold between actions
+    DECISION_PAUSE_MS = 250
 
     def __init__(self, game, pos, tilemap=None, tilemaps=None, drop=15):
         frames = _load_boss_frames()
@@ -177,8 +167,8 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
         self.hitbox.center = self.rect.center
 
         self.setup_combat(
-            health=40,                    # buffed: was 20
-            knockback_force=0,           # boss is immovable from melee hits
+            health=40,
+            knockback_force=0,
             hit_cooldown_ms=300,
             stun_duration_ms=0,
             sight_range=self.SIGHT_RANGE,
@@ -188,8 +178,8 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
         self._anim_state = "idle"
         self._anim_frame = 0.0
         self._anim_done = False
-        self._facing = 1             # spritesheet faces right; flip when chasing left
-        self._invisible = False      # mid-teleport: skip drawing the body
+        self._facing = 1
+        self._invisible = False
 
         now = pygame.time.get_ticks()
         self._teleport_until = now + 800
@@ -199,10 +189,9 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
         self._attack_landed_frames: set[int] = set()
 
         self._active_summons: list = []
-        self._max_summons = 3        # buffed: was 2
+        self._max_summons = 3
 
         self.death_done = False
-
 
     def _set_anim(self, state):
         if state == self._anim_state:
@@ -351,7 +340,6 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
             self._next_decision_at = now + self.DECISION_PAUSE_MS
             self._set_anim("idle2")
 
-
     def update(self, dt):
         if self.ai_state == "dead":
             self._set_anim("death")
@@ -465,7 +453,6 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
             self._set_anim("summon")
         self._advance_anim(dt)
 
-
     def draw(self, surf, offset=pygame.Vector2(0, 0)):
         if self._invisible:
             return
@@ -476,9 +463,6 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
                 self.hitbox.width, self.hitbox.height
             )
             pygame.draw.rect(surf, (255, 80, 80), r, 2)
-
-
-
 
 class SummonedSkeleton(Sprite, EnemyCombatMixin):
     """Glass-cannon adds spawned by the boss.
@@ -492,7 +476,7 @@ class SummonedSkeleton(Sprite, EnemyCombatMixin):
     tilemap: Any
 
     SIGHT_RANGE = 800
-    MOVE_SPEED = 130          # px/sec while chasing
+    MOVE_SPEED = 130
     CONTACT_DAMAGE = 1
     APPEAR_DURATION_MS = 600
 

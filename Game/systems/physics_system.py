@@ -6,7 +6,7 @@ class PhysicsSystem(System):
     def __init__(self, world, tilemaps):
         super().__init__(world)
         self.tilemaps = tilemaps
-        self.gravity = 500  # pixels per second squared
+        self.gravity = 500
 
     def update(self, dt):
         for entity in self.world.entities:

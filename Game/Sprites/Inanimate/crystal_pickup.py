@@ -4,7 +4,6 @@ import math
 from Game.Sprites.sprite import Sprite
 from Game.utils.utils import load_image
 
-
 class CrystalPickup(Sprite):
     """A static collectible crystal placed in the editor.
 

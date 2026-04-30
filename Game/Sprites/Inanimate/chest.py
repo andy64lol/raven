@@ -3,7 +3,6 @@ import pygame
 from Game.Sprites.sprite import Sprite
 from Game.Sprites.Inanimate.item import Item
 
-
 class Chest(Sprite):
     """A chest that drops items when the player touches it.
 

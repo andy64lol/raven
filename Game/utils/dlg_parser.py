@@ -2,12 +2,10 @@
 
 .dlg files use a theater-play syntax:
 
-
     PERSONAJE: Primera línea de diálogo.
     PERSONAJE: Segunda línea del mismo personaje.
 
     OTRO: Respuesta del otro personaje.
-
 
 Rules
 -----
@@ -25,7 +23,6 @@ Returns
 from __future__ import annotations
 import os
 
-
 def parse(path: str) -> list[tuple[str, str]]:
     """Read a ``.dlg`` file and return ordered ``(speaker, text)`` pairs."""
     lines: list[tuple[str, str]] = []
@@ -42,7 +39,6 @@ def parse(path: str) -> list[tuple[str, str]]:
             if speaker and text:
                 lines.append((speaker, text))
     return lines
-
 
 def load_sequence(path: str) -> tuple[list[str], list[str | None]]:
     """Return ``(texts, speakers)`` parallel lists suitable for

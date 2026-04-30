@@ -2,7 +2,6 @@ from Game.Sprites.sprite import PhysicsSprite
 from Game.Sprites.Enemies._combat import EnemyCombatMixin
 import pygame
 
-
 class Enemy(PhysicsSprite, EnemyCombatMixin):
     """Ground-walking enemy.
 

@@ -11,22 +11,18 @@ import json
 import os
 from pathlib import Path
 
-
 SAVE_DIR = "saves"
 NUM_SLOTS = 5
 
 Path(SAVE_DIR).mkdir(exist_ok=True)
 
-
 def _get_slot_path(slot: int) -> str:
     """Get the file path for a given save slot."""
     return os.path.join(SAVE_DIR, f"save_slot_{slot}.json")
 
-
 def has_save(slot: int = 0) -> bool:
     """Check if a save exists in the given slot."""
     return os.path.isfile(_get_slot_path(slot))
-
 
 def get_all_saves() -> dict[int, dict | None]:
     """Get metadata for all save slots."""
@@ -44,7 +40,6 @@ def get_all_saves() -> dict[int, dict | None]:
             saves[slot] = None
     return saves
 
-
 def get_save_metadata(slot: int) -> dict | None:
     """Get metadata about a save slot (level, position, health, etc)."""
     if not has_save(slot):
@@ -61,9 +56,7 @@ def get_save_metadata(slot: int) -> dict | None:
     except (OSError, json.JSONDecodeError):
         return None
 
-
 _INVENTORY_PERSIST_KEYS = ("id", "qty")
-
 
 def _serialize_inventory(inventory) -> list[dict]:
     """Strip transient fields (icon Surface, etc.) for JSON storage."""
@@ -78,13 +71,12 @@ def _serialize_inventory(inventory) -> list[dict]:
         out.append(slim)
     return out
 
-
 def save_game(game, slot: int = 0) -> bool:
     """Save game to the specified slot."""
     if slot < 0 or slot >= NUM_SLOTS:
         print(f"[save] invalid slot: {slot}")
         return False
-    
+
     player = game.player
     data = {
         "version": 1,
@@ -109,12 +101,11 @@ def save_game(game, slot: int = 0) -> bool:
         print(f"[save] failed: {e}")
         return False
 
-
 def load_save(slot: int = 0) -> dict | None:
     """Load a save from the specified slot."""
     if slot < 0 or slot >= NUM_SLOTS:
         return None
-    
+
     if not has_save(slot):
         return None
     try:
@@ -123,7 +114,6 @@ def load_save(slot: int = 0) -> dict | None:
     except (OSError, json.JSONDecodeError) as e:
         print(f"[save] load slot {slot} failed: {e}")
         return None
-
 
 def _rehydrate_inventory(saved_items) -> list[dict]:
     """Rebuild full inventory dicts (with icon Surfaces) from slim saved entries."""
@@ -145,10 +135,9 @@ def _rehydrate_inventory(saved_items) -> list[dict]:
         rebuilt.append(inv_item)
     return rebuilt
 
-
 def apply_save(game, data: dict | None) -> bool:
     """Apply loaded save state to an already-initialized Game/Player.
-    
+
     Returns True if a save was applied, False otherwise.
     """
     if not data:

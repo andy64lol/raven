@@ -17,7 +17,6 @@ Controls:
 """
 import pygame
 
-
 class DialogueBox:
     CHARS_PER_SECOND = 38
 
@@ -28,10 +27,9 @@ class DialogueBox:
         self.speaker: str | None = None
         self.revealed = 0.0
         self.active = False
-        self._font: pygame.font.Font = None  # type: ignore[assignment]
-        self._title_font: pygame.font.Font = None  # type: ignore[assignment]
+        self._font: pygame.font.Font = None
+        self._title_font: pygame.font.Font = None
         self._advance_cooldown = 0.0
-
 
     def start(self, messages: list[str], speaker: str | None = None):
         """Begin a single-speaker dialogue sequence."""
@@ -69,7 +67,6 @@ class DialogueBox:
         else:
             self._pop_next()
 
-
     def update(self, dt: float, events=None):
         if not self.active:
             return
@@ -86,7 +83,6 @@ class DialogueBox:
                 ):
                     if self._advance_cooldown <= 0.0:
                         self.advance()
-
 
     def _ensure_fonts(self):
         if self._font is None:

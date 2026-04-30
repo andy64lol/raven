@@ -5,7 +5,6 @@ from Game.Sprites.crystals import Crystal
 from Game.utils.utils import SpriteSheet
 from Game.utils.timer import Timer
 
-
 class Player(Sprite):
     game: Any
     tilemap: Any
@@ -16,20 +15,20 @@ class Player(Sprite):
         self.max_speed = self.base_max_speed
         self.acceleration = 1800
         self.friction = 2400
-        self.air_acceleration = 1200  # Air control is a bit weaker than on ground
+        self.air_acceleration = 1200
         self.velocity = pygame.math.Vector2(0, 0)
 
         self.sprint_multiplier = 1.6
         self.dash_speed = 520
-        self.dash_duration = 0.18         # seconds the dash lasts
-        self.dash_cooldown_time = 0.6     # seconds before another dash can fire
-        self._dash_timer = 0.0            # remaining dash time
-        self._dash_cooldown = 0.0         # remaining cooldown
-        self._dash_dir = 0                # -1 / +1 facing at dash start
-        self._prev_shift_held = False     # rising-edge tracker for dash trigger
+        self.dash_duration = 0.18
+        self.dash_cooldown_time = 0.6
+        self._dash_timer = 0.0
+        self._dash_cooldown = 0.0
+        self._dash_dir = 0
+        self._prev_shift_held = False
 
-        self.coyote_time = 0.10        # seconds of "still able to jump after walking off"
-        self.jump_buffer_time = 0.12   # seconds to remember a jump press before landing
+        self.coyote_time = 0.10
+        self.jump_buffer_time = 0.12
         self._coyote_timer = 0.0
         self._jump_buffer_timer = 0.0
         self._prev_jump_held = False
@@ -37,19 +36,23 @@ class Player(Sprite):
         self.tilemap = tilemap
         self.game = game
 
+        idle_sheet = SpriteSheet("raven/sprite_1.webp", tile_size=64)
+        run_sheet = SpriteSheet("raven/hoja_sprite.webp", tile_size=64)
+        attack_sheet = SpriteSheet("raven/hoja_sprite_ataque_xd.webp", tile_size=64)
+
         self.animations = {
-            "idle": (SpriteSheet("little_riven/Idle.png", tile_size=144, colorkey=(0, 0, 0)), 15, True),
-            "death": (SpriteSheet("little_riven/Death.png", tile_size=144, colorkey=(0, 0, 0)), 10, False),
-            "double_slash": (SpriteSheet("little_riven/Double Slash.png", tile_size=144, colorkey=(0, 0, 0)), 30, False),
-            "fall": (SpriteSheet("little_riven/Fall.png", tile_size=144, colorkey=(0, 0, 0)), 15, True),
-            "hurt": (SpriteSheet("little_riven/Hurt.png", tile_size=144, colorkey=(0, 0, 0)), 15, False),
-            "idle_break": (SpriteSheet("little_riven/Idle Break.png", tile_size=144, colorkey=(0, 0, 0)), 30, False),
-            "jump": (SpriteSheet("little_riven/Jump.png", tile_size=144, colorkey=(0, 0, 0)), 5, True),
-            "run": (SpriteSheet("little_riven/Run.png", tile_size=144, colorkey=(0, 0, 0)), 10, True),
-            "slash": (SpriteSheet("little_riven/Slash.png", tile_size=144, colorkey=(0, 0, 0)), 30, False),
-            "smoke_in": (SpriteSheet("little_riven/Smoke In.png", tile_size=144, colorkey=(0, 0, 0)), 10, False),
-            "smoke_out": (SpriteSheet("little_riven/Smoke Out.png", tile_size=144, colorkey=(0, 0, 0)), 10, False),
-            "special_skill": (SpriteSheet("little_riven/Special Skill.png", tile_size=144, colorkey=(0, 0, 0)), 10, False),
+            "idle": (idle_sheet, 8, True),
+            "death": (idle_sheet, 8, False),
+            "double_slash": (attack_sheet, 18, False),
+            "fall": (idle_sheet, 8, True),
+            "hurt": (idle_sheet, 8, False),
+            "idle_break": (idle_sheet, 8, False),
+            "jump": (idle_sheet, 8, True),
+            "run": (run_sheet, 14, True),
+            "slash": (attack_sheet, 18, False),
+            "smoke_in": (idle_sheet, 8, False),
+            "smoke_out": (idle_sheet, 8, False),
+            "special_skill": (idle_sheet, 8, False),
         }
 
         self.crystals = 0
@@ -62,7 +65,7 @@ class Player(Sprite):
         self.frame = 0
 
         self.visual_scale = 2
-        self.scaled_sprite_size = 144 * self.visual_scale
+        self.scaled_sprite_size = 64 * self.visual_scale
 
         char_bounds = self.calculate_character_bounds()
         char_width = char_bounds['width']
@@ -405,7 +408,6 @@ class Player(Sprite):
                                 self.attributes["stun"] = pygame.time.get_ticks()
                             break
 
-
         if self.attributes.get("slashing") or self.attributes.get("double_slashing"):
             max_damage_frames = self.attributes["max_double_slash_damage_frames"] if self.attributes.get("double_slashing") else self.attributes["max_slash_damage_frames"]
 
@@ -488,7 +490,6 @@ class Player(Sprite):
                 self.frame += frame_duration * dt
             if self.image:
                 self.image = pygame.transform.scale(self.image, (self.scaled_sprite_size, self.scaled_sprite_size))
-                self.image.set_colorkey((0, 0, 0))
                 self.update_visual_rect()
             if not slash_finished and not self.collisions["bottom"] and not getattr(self.game, "debug_fly", False):
                 self.velocity.y += self.gravity * dt * 60
@@ -540,7 +541,6 @@ class Player(Sprite):
 
         if self.image:
             self.image = pygame.transform.scale(self.image, (self.scaled_sprite_size, self.scaled_sprite_size))
-            self.image.set_colorkey((0,0,0))
             self.update_visual_rect()
 
         self.frame += frame_duration * dt
@@ -606,7 +606,7 @@ class Player(Sprite):
                 for x in range(width):
                     pixel = surface.get_at((x, y))
 
-                    if pixel[3] > 0 and pixel[:3] != (0, 0, 0):
+                    if pixel[3] > 0:
                         found_pixel = True
                         left = min(left, x)
                         right = max(right, x)

@@ -19,9 +19,7 @@ def load_image(path, colorkey=None, size=None):
         img = pygame.transform.scale(img, (16, 16))
     return img
 
-
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".bmp")
-
 
 def load_images(path):
     """Load every image file in a directory (sorted, image-extensions only).
@@ -40,7 +38,6 @@ def load_images(path):
             continue
         images.append(load_image(path + '/' + str(img_name)))
     return images
-
 
 class PlantPack:
     """SpriteSheet-compatible wrapper around a folder of plant frames.

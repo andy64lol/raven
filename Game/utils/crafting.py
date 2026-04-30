@@ -8,13 +8,12 @@ from __future__ import annotations
 import pygame
 from Game.utils.items_db import RECIPES, ITEMS, make_inv_item, _draw_item_icon
 
-
 class CraftingOverlay:
     def __init__(self, game):
         self.game = game
-        self._font: pygame.font.Font = None  # type: ignore[assignment]
-        self._small_font: pygame.font.Font = None  # type: ignore[assignment]
-        self._big_font: pygame.font.Font = None  # type: ignore[assignment]
+        self._font: pygame.font.Font = None
+        self._small_font: pygame.font.Font = None
+        self._big_font: pygame.font.Font = None
         self._result_msg: str = ""
         self._msg_timer: float = 0.0
         self._recipe_rects: list[tuple[dict, pygame.Rect]] = []

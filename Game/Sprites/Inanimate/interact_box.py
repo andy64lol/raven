@@ -3,7 +3,6 @@ import pygame
 from Game.Sprites.sprite import Sprite
 from Game.Sprites.crystals import Crystal
 
-
 class InteractBox(Sprite):
     """A wooden crate the player can open with the Z key.
 
@@ -96,7 +95,7 @@ class InteractBox(Sprite):
             for _ in range(min(5, max(1, self.reward // 2))):
                 c = Crystal(
                     position=pygame.Vector2(self.rect.center),
-                    value=0,  # already credited; these are decorative
+                    value=0,
                     game=self.game,
                 )
                 c.tilemap = self.tilemap

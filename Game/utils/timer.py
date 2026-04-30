@@ -1,6 +1,5 @@
 import pygame
 
-
 class Timer:
     def __init__(self, duration, func=None):
         self.duration_ms = int(duration * 1000)

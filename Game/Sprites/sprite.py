@@ -2,13 +2,13 @@ from typing import Any, Optional
 import pygame
 
 class Sprite(pygame.sprite.Sprite):
-    image: pygame.Surface  # pyright: ignore
-    rect: pygame.Rect  # pyright: ignore
+    image: pygame.Surface
+    rect: pygame.Rect
 
     def __init__(self, img, pos=(0, 0), identifier=None):
         super().__init__()
-        self.image = img  # pyright: ignore[reportIncompatibleMethodOverride]
-        self.rect = self.image.get_rect(topleft=pos)  # pyright: ignore[reportIncompatibleMethodOverride]
+        self.image = img
+        self.rect = self.image.get_rect(topleft=pos)
         self.z = 0
         self.id = identifier
 

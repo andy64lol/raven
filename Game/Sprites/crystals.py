@@ -18,11 +18,11 @@ class Crystal(PhysicsSprite):
         self.game = game
         self.tilemap = None
 
-        self.gravity = 20       # px/frame added to vel each frame; vel is in px/sec
+        self.gravity = 20
         self.friction = -0.1
 
-        self.vel.x = random.uniform(-150, 150)   # px/sec
-        self.vel.y = random.uniform(-400, -200)  # px/sec (upward burst)
+        self.vel.x = random.uniform(-150, 150)
+        self.vel.y = random.uniform(-400, -200)
 
         self.rotation_angle = 0
 

@@ -29,9 +29,7 @@ from Game.systems.input_system import InputSystem
 from Game.systems.physics_system import PhysicsSystem
 from Game.systems.render_system import RenderSystem
 
-
 _HEART_THEMES = ["normal"]
-
 
 def _load_heart_theme(name):
     """Build the dict shape Hud expects for a given Heart Container variant."""
@@ -61,7 +59,6 @@ def _load_heart_theme(name):
         theme["shine"] = theme["blink"]
     return theme
 
-
 def _load_armor_icons():
     """Return small armor-container icons for the HUD: golden / silver / general."""
     icons = {}
@@ -71,7 +68,6 @@ def _load_armor_icons():
         "hud/Armor Container General/armor_container_highlight.png"
     )
     return icons
-
 
 class Game:
     def __init__(self):
@@ -150,8 +146,8 @@ class Game:
         self.title_screen_active = True
         self.title_screen = TitleScreen(self)
         self._pending_load = False
-        self._pending_load_slot = 0  # Which save slot to load
-        self._loaded_from_save = False  # Flag to skip intro if loaded from save
+        self._pending_load_slot = 0
+        self._loaded_from_save = False
         self._active_save_slot = 0
 
         self.dialogue = DialogueBox(self)
@@ -188,7 +184,7 @@ class Game:
 
         self.fog_enabled = True
         self.fog_radius = 350
-        self.fog_darkness = 245  # alpha 0-255 of the dark area
+        self.fog_darkness = 245
         self._fog_overlay = None
         self._fog_hole_stamp = None
         self._fog_hole_radius_built = None
@@ -206,14 +202,14 @@ class Game:
         self.collision_types = ["none", "solid", "platform", "hazard"]
         self.selected_shape = "full"
         self.shape_options = SHAPE_NAMES
-        self.brush_size = 1  # NxN brush; clamped to [1, 10]
-        self.editor_scroll = 0  # variant palette scroll (relative)
-        self.editor_sidebar_scroll = 0  # full-sidebar scroll for sections above palette
+        self.brush_size = 1
+        self.editor_scroll = 0
+        self.editor_sidebar_scroll = 0
         self.editor_mouse_held = False
         self.editor_right_held = False
-        self.spawnpoint_mode = False  # Layer 1 only: place spawnpoint instead of tile
+        self.spawnpoint_mode = False
         self.enemy_mode = False
-        self.selected_enemy_kind = "ground"  # "ground", "flying", or "boss"
+        self.selected_enemy_kind = "ground"
         self.editor_erase_mode = False
         self.enemy_axes = [
             ("X", (1, 0)),
@@ -225,7 +221,7 @@ class Game:
         self.object_mode = False
         self.object_kinds = ["crystal", "box", "sword", "tetrahaxal", "wrench", "chest", "key"]
         self.selected_object_kind = "crystal"
-        self._editor_tooltips = []  # populated each frame by draw_editor for hover tooltips
+        self._editor_tooltips = []
 
         self.layers = [{"id": 1, "in_front": False}]
         self.next_layer_id = 2
@@ -497,7 +493,7 @@ class Game:
         txt = font_to_use.render(text, True, text_color)
         txt_rect = txt.get_rect(center=scaled_rect.center)
         self.screen.blit(txt, txt_rect)
-        
+
         if lock:
             lock_text = font_to_use.render("🔒", True, (200, 150, 100))
             lock_rect = lock_text.get_rect(right=scaled_rect.right - 12, centery=scaled_rect.centery)
@@ -569,10 +565,10 @@ class Game:
         panel_height = 400
         panel_rect = pygame.Rect(0, 0, panel_width, panel_height)
         panel_rect.center = (cx, cy)
-        
+
         pygame.draw.rect(self.screen, (15, 20, 35), panel_rect, border_radius=12)
         pygame.draw.rect(self.screen, (80, 120, 180), panel_rect, 3, border_radius=12)
-        
+
         glow_surf = pygame.Surface((panel_width + 20, panel_height + 20), pygame.SRCALPHA)
         pygame.draw.rect(
             glow_surf, (50, 100, 150, 40),
@@ -585,41 +581,41 @@ class Game:
         paused_text = title_font.render("PAUSA", True, (220, 240, 255))
         title_rect = paused_text.get_rect(center=(cx, y_offset))
         self.screen.blit(paused_text, title_rect)
-        
+
         line_y = y_offset + 25
         pygame.draw.line(self.screen, (100, 150, 200), (cx - 60, line_y), (cx + 60, line_y), 2)
-        
+
         y_offset = line_y + 20
 
         if self._pwd_asking:
             pwd_label = small_font.render("Código dev:", True, (150, 170, 210))
             pwd_label_rect = pwd_label.get_rect(center=(cx, y_offset))
             self.screen.blit(pwd_label, pwd_label_rect)
-            
+
             box_rect = pygame.Rect(0, 0, 220, 36)
             box_rect.center = (cx, y_offset + 40)
             pygame.draw.rect(self.screen, (25, 35, 55), box_rect, border_radius=6)
             pygame.draw.rect(self.screen, (100, 140, 200), box_rect, 2, border_radius=6)
-            
+
             stars = "*" * len(self._pwd_buf)
             pwd_surf = small_font.render(stars, True, (255, 255, 150))
             self.screen.blit(pwd_surf, pwd_surf.get_rect(center=box_rect.center))
-            
+
             hint = self.fonts["Arial"].render("Pulsa ENTER para confirmar", True, (110, 140, 180))
             hint_rect = hint.get_rect(center=(cx, y_offset + 75))
             self.screen.blit(hint, hint_rect)
-            
+
             back_rect = pygame.Rect(0, 0, 220, 40)
             back_rect.center = (cx, y_offset + 120)
             self._draw_pause_button(back_rect, "Atrás", hover=self._is_hovered(back_rect), font=small_font, color=(100, 100, 120))
-            
+
             return back_rect, None, None, None, None
 
         resume_rect = pygame.Rect(0, 0, 220, 40)
         resume_rect.center = (cx, y_offset)
         self._draw_pause_button(resume_rect, "Continuar", hover=self._is_hovered(resume_rect), font=small_font)
         y_offset += 55
-        
+
         pygame.draw.line(self.screen, (60, 100, 140), (cx - 90, y_offset - 10), (cx + 90, y_offset - 10), 1)
         y_offset += 10
 
@@ -629,12 +625,12 @@ class Game:
         debug_color = (180, 100, 50) if self.debug_mode else (100, 120, 150)
         self._draw_pause_button(debug_rect, debug_label, hover=self._is_hovered(debug_rect), font=small_font, color=debug_color, lock=not self._dev_unlocked)
         y_offset += 50
-        
+
         build_rect = pygame.Rect(0, 0, 220, 40)
         build_rect.center = (cx, y_offset)
         self._draw_pause_button(build_rect, "Editar Mapa", hover=self._is_hovered(build_rect), font=small_font, color=(100, 150, 100), lock=not self._dev_unlocked)
         y_offset += 55
-        
+
         pygame.draw.line(self.screen, (60, 100, 140), (cx - 90, y_offset - 10), (cx + 90, y_offset - 10), 1)
         y_offset += 10
 
@@ -871,7 +867,7 @@ class Game:
 
         scroll = self.editor_sidebar_scroll
         y = 38 + scroll
-        layout["sections"] = []  # list of (title, header_rect)
+        layout["sections"] = []
 
         env_names = [k for k in self.assets.keys() if k != "hud"]
         layout["env_names"] = env_names
@@ -988,11 +984,11 @@ class Game:
 
         layout["sidebar_content_bottom"] = (
             y - scroll
-        )  # un-scrolled content end (for clamping)
+        )
 
         layout["sections"].append(("VARIANTS", pygame.Rect(8, y, sw - 16, 16)))
         y += 20
-        layout["var_y"] = y  # palette tiles start here
+        layout["var_y"] = y
 
         filtered = self._get_editor_palette_for(
             self.selected_env, self.selected_type
@@ -1003,7 +999,7 @@ class Game:
         palette_height = palette_rows * (thumb_size + 5)
         layout["palette_bottom_y"] = (
             y - scroll
-        ) + palette_height  # un-scrolled absolute bottom
+        ) + palette_height
         layout["sidebar_total_h"] = layout["palette_bottom_y"] + 20
 
         layout["save_rect"] = pygame.Rect(10, self.screen.get_height() - 50, 95, 32)
@@ -1607,7 +1603,7 @@ class Game:
         self.player.crystals = max(self.player.crystals, 5)
         for key in ITEMS.keys():
             if key == "crystal":
-                continue  # crystals live on player.crystals, not inventory
+                continue
             inv_item = make_inv_item(key, 1)
             inv_item["icon"] = _draw_item_icon(key, 32)
             self.player.inventory.append(inv_item)
@@ -1653,11 +1649,11 @@ class Game:
             stamp = pygame.Surface((size, size), pygame.SRCALPHA).convert_alpha()
             steps = 18
             for i in range(steps - 1, -1, -1):
-                t = i / (steps - 1)          # t: 1 → 0 as i decreases
-                r = int(radius * t)           # r: radius → 0 (large first)
+                t = i / (steps - 1)
+                r = int(radius * t)
                 if r <= 0:
                     continue
-                a = int(255 * (1.0 - t) ** 1.6)  # a: 0 → 255 (high alpha for small r)
+                a = int(255 * (1.0 - t) ** 1.6)
                 pygame.draw.circle(stamp, (255, 255, 255, a), (radius, radius), r)
             self._fog_hole_stamp = stamp
             self._fog_hole_radius_built = radius
@@ -1819,7 +1815,7 @@ class Game:
                         if self._pwd_buf == "RAVEN":
                             self._dev_unlocked = True
                             self.hud.show_toast("Modo dev desbloqueado")
-                            
+
                             if self._pwd_pending_action == "debug":
                                 self.debug_mode = not self.debug_mode
                                 self.debug_fly = self.debug_mode
@@ -1831,7 +1827,7 @@ class Game:
                                 self.editor_mode = True
                         else:
                             self.hud.show_toast("Código incorrecto")
-                        
+
                         self._pwd_buf = ""
                         self._pwd_asking = False
                         self._pwd_pending_action = None
@@ -1995,7 +1991,7 @@ class Game:
                 if self.paused:
                     pause_rects = self.draw_pause()
                     resume_rect, debug_rect, build_rect, menu_rect, quit_rect = pause_rects
-                    
+
                     if self._pwd_asking:
                         if resume_rect and self._is_hovered(resume_rect):
                             self._pwd_asking = False
@@ -2277,7 +2273,7 @@ class Game:
         if self.paused or self.editor_mode:
             if self.editor_mode:
                 keys = pygame.key.get_pressed()
-                pan_speed = 600  # pixels per second
+                pan_speed = 600
                 dx = 0
                 dy = 0
                 if keys[pygame.K_a] or keys[pygame.K_LEFT]:
@@ -2478,7 +2474,7 @@ class Game:
                 _slot_to_load = self._pending_load_slot
                 if _apply_save_to_game(self, _load_save_from_disk(_slot_to_load)):
                     self._loaded_from_save = True
-                    self._intro_played = True  # Skip intro dialogue for loaded saves
+                    self._intro_played = True
                     self._active_save_slot = _slot_to_load
                 self._snap_player_above_ground()
                 self._pending_load = False
@@ -2491,7 +2487,7 @@ class Game:
                 self._stop_music()
 
             if not self.editor_mode and not self._intro_played:
-                self._intro_delay = 0.6  # reset the countdown each new play session
+                self._intro_delay = 0.6
 
             while self.running and not self.title_screen_active:
                 dt = self.clock.tick(60) / 1000

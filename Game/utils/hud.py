@@ -4,7 +4,6 @@ import random
 from Game.utils.transisitions import Fadeout
 from Game.utils.utils import load_image
 
-
 class Hud:
     def __init__(self, game):
         self.game = game
@@ -21,13 +20,13 @@ class Hud:
         self.fadeout = Fadeout(duration=3, color=(0, 0, 0))
 
         self.crystal_icon = pygame.Surface((16, 16))
-        self.crystal_icon.fill((0, 255, 255))  # Cyan color as placeholder
-        pygame.draw.circle(self.crystal_icon, (255, 255, 255), (8, 8), 6, 2)  # White outline
+        self.crystal_icon.fill((0, 255, 255))
+        pygame.draw.circle(self.crystal_icon, (255, 255, 255), (8, 8), 6, 2)
 
         self._panel_origin = (14, 10)
         self._panel_padding_x = 12
         self._panel_padding_y = 10
-        self._heart_spacing = self.heart_size + 4   # tight, no overlap
+        self._heart_spacing = self.heart_size + 4
 
         self._toast_text = ""
         self._toast_until_ms = 0
@@ -92,7 +91,7 @@ class Hud:
         self._tick_heart_animations(dt)
 
     def _tick_heart_animations(self, dt):
-        step = dt * 60  # 1.0 per frame at 60fps -> matches legacy timing
+        step = dt * 60
         for heart_data in self.hearts.values():
             if heart_data["state"] != "full":
                 continue

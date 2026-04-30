@@ -6,9 +6,8 @@ import pygame
 from Game.Sprites.sprite import Sprite
 from Game.Sprites.Enemies._combat import EnemyCombatMixin
 
-
 _BAT_BASE = os.path.join("Game", "assets", "monsters", "bat(flying)")
-_BAT_FRAMES = None  # lazily populated dict: {state: [Surface, ...]}
+_BAT_FRAMES = None
 
 _BAT_ANIM_SPEC = {
     "idle":   ("Idle",          120, True),
@@ -18,10 +17,9 @@ _BAT_ANIM_SPEC = {
     "death":  ("Death",         100, False),
 }
 
-_ATTACK_RANGE = 110          # px; bat starts windup when player is this close
-_ATTACK_COOLDOWN_MS = 1100   # min gap between attack windups
-_BAT_SCALE = 3               # render the bat 3× larger than the source frames
-
+_ATTACK_RANGE = 110
+_ATTACK_COOLDOWN_MS = 1100
+_BAT_SCALE = 3
 
 def _load_bat_frames():
     """Load every bat animation folder once and cache the frames (scaled)."""
@@ -65,7 +63,6 @@ def _load_bat_frames():
         frames[state] = loaded
     _BAT_FRAMES = frames
     return _BAT_FRAMES
-
 
 class FlyingEnemy(Sprite, EnemyCombatMixin):
     tilemaps: Any
@@ -134,17 +131,16 @@ class FlyingEnemy(Sprite, EnemyCombatMixin):
             knockback_force=80,
             hit_cooldown_ms=400,
             stun_duration_ms=400,
-            sight_range=600,           # wider FOV — bats spot the player from much further
+            sight_range=600,
             chase_speed_mult=1.6,
         )
 
         self._anim_state = "idle"
-        self._anim_frame = 0.0       # float frame index
-        self._anim_done = False      # set when a non-looping animation finishes
-        self._facing = 1             # 1 = facing right, -1 = facing left
+        self._anim_frame = 0.0
+        self._anim_done = False
+        self._facing = 1
         self._attack_cooldown_until = 0
         self._death_played = False
-
 
     def _set_anim(self, state):
         if state == self._anim_state:
@@ -208,7 +204,6 @@ class FlyingEnemy(Sprite, EnemyCombatMixin):
             self._attack_cooldown_until = now + _ATTACK_COOLDOWN_MS
             return "windup"
         return "idle"
-
 
     def tilemap_collisions(self):
         for tilemap in self.tilemaps:
