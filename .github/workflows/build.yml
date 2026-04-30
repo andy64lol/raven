@@ -101,6 +101,109 @@ jobs:
           name: ${{ env.APP_NAME }}-linux-deb
           path: artifacts/*.deb
 
+  build-appimage:
+    name: Build Linux (.AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential patchelf ccache \
+            libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 \
+            libsdl2-ttf-2.0-0 libfreetype6 libportmidi0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame-ce nuitka ordered-set zstandard
+
+      - name: Build with Nuitka
+        run: |
+          python -m nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --remove-output \
+            --output-dir=build \
+            --output-filename=${APP_NAME} \
+            --include-data-dir=Game=Game \
+            --product-name=${APP_NAME} \
+            --product-version=${APP_VERSION} \
+            --file-description=${APP_NAME} \
+            main.py
+          mv build/main.dist "build/${APP_NAME}.dist"
+
+      - name: Package as AppImage
+        run: |
+          # Install appimagetool
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
+          
+          # Create AppDir structure
+          mkdir -p "AppDir/usr/bin" "AppDir/usr/lib" "AppDir/usr/share/applications" "AppDir/usr/share/icons/hicolor/512x512/apps"
+          
+          # Copy the built application
+          cp -r "build/${APP_NAME}.dist/." "AppDir/usr/bin/${APP_NAME}"
+          
+          # Create wrapper script
+          cat > "AppDir/usr/bin/${APP_NAME}" <<EOF
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/../bin/${APP_NAME}" "\$@"
+          EOF
+          chmod +x "AppDir/usr/bin/${APP_NAME}"
+          
+          # Create Apprun script (required for AppImage)
+          cat > "AppDir/AppRun" <<EOF
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          export PATH="${HERE}/usr/bin:${PATH}"
+          LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}" \
+            exec "${HERE}/usr/bin/${APP_NAME}" "\$@"
+          EOF
+          chmod +x "AppDir/AppRun"
+          
+          # Create .desktop file
+          cat > "AppDir/${APP_NAME}.desktop" <<EOF
+          [Desktop Entry]
+          Name=${APP_NAME}
+          Exec=${APP_NAME}
+          Type=Application
+          Categories=Game;
+          Terminal=false
+          EOF
+          
+          # Deploy icons (blank/empty icon - simple valid PNG)
+          printf '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82' > "AppDir/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png"
+          
+          # Copy icon to lower resolution directories
+          cp "AppDir/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png" "AppDir/usr/share/icons/hicolor/256x256/apps/${APP_NAME}.png"
+          cp "AppDir/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png" "AppDir/usr/share/icons/hicolor/128x128/apps/${APP_NAME}.png"
+          cp "AppDir/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png" "AppDir/usr/share/icons/hicolor/64x64/apps/${APP_NAME}.png"
+          cp "AppDir/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png" "AppDir/usr/share/icons/hicolor/32x32/apps/${APP_NAME}.png"
+          cp "AppDir/usr/share/icons/hicolor/512x512/apps/${APP_NAME}.png" "AppDir/usr/share/icons/hicolor/16x16/apps/${APP_NAME}.png"
+          
+          # Copy desktop file
+          cp "AppDir/${APP_NAME}.desktop" "AppDir/usr/share/applications/${APP_NAME}.desktop"
+          
+          # Build the AppImage
+          chmod +x appimagetool
+          ./appimagetool AppDir "artifacts/${APP_NAME}-${APP_VERSION}-linux.AppImage"
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-linux-appimage
+          path: artifacts/*.AppImage
+
   build-windows:
     name: Build Windows (.exe)
     runs-on: windows-latest
@@ -138,7 +241,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          Copy-Item "build/${{ env.APP_NAME }}.exe" "artifacts/${{ env.APP_NAME }}-${{ env.APP_VERSION }}-windows.exe"
+          Copy-Item "build\${{ env.APP_NAME }}.exe" "artifacts\${{ env.APP_NAME }}-${{ env.APP_VERSION }}-windows.exe"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -162,6 +265,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pygame-ce nuitka ordered-set zstandard
+
       - name: Build with Nuitka
         run: |
           python -m nuitka \
@@ -171,35 +275,74 @@ jobs:
             --macos-app-name=${APP_NAME} \
             --macos-app-version=${APP_VERSION} \
             --output-dir=build \
+            --output-filename=${APP_NAME} \
             --include-data-dir=Game=Game \
             --product-name=${APP_NAME} \
             --product-version=${APP_VERSION} \
             --file-description=${APP_NAME} \
             main.py
           
-          # List build directory contents for debugging
+          # Find the generated .app bundle (could be main.app or Raven.app)
           echo "Build directory contents:"
           ls -la build/
+          
+          # Rename if needed
+          if [ -d "build/main.app" ]; then
+            mv build/main.app "build/${APP_NAME}.app"
+          fi
 
       - name: Package .app into a zip
         run: |
           mkdir -p artifacts
           cd build
           
-          # Check if .app bundle exists, if not look for .dist
+          # Check if .app bundle exists (with correct name)
           if [ -d "${APP_NAME}.app" ]; then
             zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "${APP_NAME}.app"
+          elif [ -d "main.app" ]; then
+            # Legacy check for main.app
+            zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "main.app"
           elif [ -d "main.dist" ]; then
-            # If only .dist exists, create the bundle structure or zip the dist
-            zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "main.dist"
+            # Fallback: create the bundle structure manually
+            mkdir -p "${APP_NAME}.app/Contents/MacOS"
+            cp -r main.dist/* "${APP_NAME}.app/Contents/MacOS/"
+            # Create minimal Contents/Info.plist
+            cat > "${APP_NAME}.app/Contents/Info.plist" <<EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>CFBundleExecutable</key>
+                <string>${APP_NAME}</string>
+                <key>CFBundleIdentifier</key>
+                <string>com.acidicts.${APP_NAME}</string>
+                <key>CFBundleName</key>
+                <string>${APP_NAME}</string>
+                <key>CFBundlePackageType</key>
+                <string>APPL</string>
+                <key>CFBundleShortVersionString</key>
+                <string>${APP_VERSION}</string>
+                <key>CFBundleVersion</key>
+                <string>1</string>
+            </dict>
+            </plist>
+            EOF
+            zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "${APP_NAME}.app"
           else
-            echo "ERROR: Neither ${APP_NAME}.app nor main.dist found"
+            echo "ERROR: Neither ${APP_NAME}.app nor main.dist found in build directory"
+            ls -la
             exit 1
           fi
 
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-macos-app
+          path: artifacts/*.zip
+
   release:
     name: Attach to Release
-    needs: [build-linux, build-windows, build-macos]
+    needs: [build-linux, build-appimage, build-windows, build-macos]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
