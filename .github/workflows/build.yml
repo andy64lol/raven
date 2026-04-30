@@ -29,7 +29,7 @@ jobs:
           python -m nuitka main.py `
             --standalone `
             --onefile `
-            --enable-plugin=pygame `
+            --follow-imports `
             --output-filename=Raven.exe `
             --output-dir=dist
 
@@ -60,7 +60,7 @@ jobs:
         run: |
           python -m nuitka main.py \
             --standalone \
-            --enable-plugin=pygame \
+            --follow-imports \
             --macos-create-app-bundle \
             --output-filename=Raven \
             --output-dir=dist
@@ -106,7 +106,7 @@ jobs:
         run: |
           python -m nuitka main.py \
             --standalone \
-            --enable-plugin=pygame \
+            --follow-imports \
             --output-filename=Raven \
             --output-dir=dist_amd64
 
@@ -152,7 +152,7 @@ jobs:
               pip install pygame nuitka && \
               python -m nuitka main.py \
                 --standalone \
-                --enable-plugin=pygame \
+                --follow-imports \
                 --output-filename=Raven \
                 --output-dir=dist_arm64"
 
