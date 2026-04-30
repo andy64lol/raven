@@ -1,180 +1,209 @@
-name: Build Release
+name: Build Raven
 
 on:
   push:
     tags:
       - "v*"
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
+env:
+  APP_NAME: Raven
+  APP_VERSION: "0.1.0"
+  PYTHON_VERSION: "3.12"
+
 jobs:
-  build-windows:
-    name: Build Windows
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          pip install pygame nuitka
-
-      - name: Compile EXE
-        run: |
-          python -m nuitka main.py `
-            --standalone `
-            --onefile `
-            --follow-imports `
-            --output-filename=Raven.exe `
-            --output-dir=dist
-
-      - name: Upload EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: raven-windows
-          path: dist/Raven.exe
-
-  build-macos:
-    name: Build macOS
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          pip install pygame nuitka
-
-      - name: Compile APP
-        run: |
-          python -m nuitka main.py \
-            --standalone \
-            --follow-imports \
-            --macos-create-app-bundle \
-            --output-filename=Raven \
-            --output-dir=dist
-
-      - name: Upload APP
-        uses: actions/upload-artifact@v4
-        with:
-          name: raven-mac
-          path: dist/*.app
-
   build-linux:
-    name: Build Linux (${{ matrix.arch }})
+    name: Build Linux (.deb)
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            docker-arch: ""
-            appimage: true
-          - arch: arm64
-            docker-arch: "linux/arm64"
-            appimage: false
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install base dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y fuse libfuse2 qemu-user-static
-          pip install pygame nuitka
+          sudo apt-get install -y \
+            build-essential patchelf ccache \
+            libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 \
+            libsdl2-ttf-2.0-0 libfreetype6 libportmidi0 fakeroot dpkg-dev
 
-      - name: Compile AMD64
-        if: matrix.arch == 'amd64'
+      - name: Install Python dependencies
         run: |
-          python -m nuitka main.py \
+          python -m pip install --upgrade pip
+          pip install pygame-ce nuitka ordered-set zstandard
+
+      - name: Build with Nuitka
+        run: |
+          python -m nuitka \
             --standalone \
-            --follow-imports \
-            --output-filename=Raven \
-            --output-dir=dist_amd64
+            --assume-yes-for-downloads \
+            --remove-output \
+            --output-dir=build \
+            --output-filename=${APP_NAME} \
+            --include-data-dir=Game=Game \
+            --product-name=${APP_NAME} \
+            --product-version=${APP_VERSION} \
+            --file-description=${APP_NAME} \
+            main.py
+          mv build/main.dist "build/${APP_NAME}.dist"
 
-      - name: Create DEB package (AMD64)
-        if: matrix.arch == 'amd64'
+      - name: Package as .deb
         run: |
-          mkdir -p package_amd64/DEBIAN
-          mkdir -p package_amd64/usr/bin
-          cp -r dist_amd64/main.dist/* package_amd64/usr/bin/
-          cat > package_amd64/DEBIAN/control <<EOF
-            Package: raven
-            Version: 1.0
-            Architecture: amd64
-            Maintainer: andy64lol
-            Description: Raven, un demo del juego
+          PKG_DIR="pkg/${APP_NAME,,}_${APP_VERSION}_amd64"
+          mkdir -p "$PKG_DIR/DEBIAN" "$PKG_DIR/opt/${APP_NAME}" \
+                   "$PKG_DIR/usr/bin" "$PKG_DIR/usr/share/applications"
+
+          cp -r "build/${APP_NAME}.dist/." "$PKG_DIR/opt/${APP_NAME}/"
+
+          cat > "$PKG_DIR/DEBIAN/control" <<EOF
+          Package: ${APP_NAME,,}
+          Version: ${APP_VERSION}
+          Section: games
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Acidicts <alexjhayes1@hotmail.com>
+          Description: ${APP_NAME} - a 2D Metroidvania game
+           Built with Python and pygame-ce, compiled with Nuitka.
           EOF
-          dpkg-deb --build package_amd64 raven_amd64.deb
 
-      - name: Create AppImage (AMD64)
-        if: matrix.arch == 'amd64' && matrix.appimage
-        run: |
-          wget -q https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-          mkdir -p AppDir/usr/bin
-          cp -r dist_amd64/main.dist/* AppDir/usr/bin/
-          cat > AppDir/raven.desktop <<EOF
-            [Desktop Entry]
-            Name=Raven
-            Exec=Raven
-            Type=Application
-            Categories=Game;
+          cat > "$PKG_DIR/usr/bin/${APP_NAME,,}" <<EOF
+          #!/bin/sh
+          exec /opt/${APP_NAME}/${APP_NAME} "\$@"
           EOF
-          ./appimagetool-x86_64.AppImage AppDir Raven.AppImage
+          chmod +x "$PKG_DIR/usr/bin/${APP_NAME,,}"
 
-      - name: Compile ARM64 (Docker)
-        if: matrix.arch == 'arm64'
-        run: |
-          docker run --rm \
-            --platform linux/arm64 \
-            -v "$PWD:/app" -w /app \
-            python:3.11 \
-            bash -c "pip install --upgrade pip setuptools wheel && \
-              pip install pygame nuitka && \
-              python -m nuitka main.py \
-                --standalone \
-                --follow-imports \
-                --output-filename=Raven \
-                --output-dir=dist_arm64"
-
-      - name: Create DEB package (ARM64)
-        if: matrix.arch == 'arm64'
-        run: |
-          mkdir -p package_arm64/DEBIAN
-          mkdir -p package_arm64/usr/bin
-          cp -r dist_arm64/main.dist/* package_arm64/usr/bin/
-          cat > package_arm64/DEBIAN/control <<EOF
-            Package: raven
-            Version: 1.0
-            Architecture: arm64
-            Maintainer: andy64lol
-            Description: Raven, un demo del juego
+          cat > "$PKG_DIR/usr/share/applications/${APP_NAME,,}.desktop" <<EOF
+          [Desktop Entry]
+          Name=${APP_NAME}
+          Exec=/usr/bin/${APP_NAME,,}
+          Type=Application
+          Categories=Game;
+          Terminal=false
           EOF
-          dpkg-deb --build package_arm64 raven_arm64.deb
 
-      - name: Upload Linux artifacts
+          fakeroot dpkg-deb --build "$PKG_DIR"
+          mkdir -p artifacts
+          mv "pkg/${APP_NAME,,}_${APP_VERSION}_amd64.deb" artifacts/
+
+      - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: raven-linux-${{ matrix.arch }}
-          path: |
-            raven_*.deb
-            Raven.AppImage
+          name: ${{ env.APP_NAME }}-linux-deb
+          path: artifacts/*.deb
+
+  build-windows:
+    name: Build Windows (.exe)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame-ce nuitka ordered-set zstandard
+
+      - name: Build with Nuitka
+        shell: pwsh
+        run: |
+          python -m nuitka `
+            --onefile `
+            --assume-yes-for-downloads `
+            --mingw64 `
+            --windows-console-mode=disable `
+            --output-dir=build `
+            --output-filename=${{ env.APP_NAME }}.exe `
+            --include-data-dir=Game=Game `
+            --product-name=${{ env.APP_NAME }} `
+            --product-version=${{ env.APP_VERSION }} `
+            --file-description=${{ env.APP_NAME }} `
+            main.py
+
+      - name: Stage artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item "build/${{ env.APP_NAME }}.exe" "artifacts/${{ env.APP_NAME }}-${{ env.APP_VERSION }}-windows.exe"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-windows-exe
+          path: artifacts/*.exe
+
+  build-macos:
+    name: Build macOS (.app)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame-ce nuitka ordered-set zstandard
+
+      - name: Build with Nuitka
+        run: |
+          python -m nuitka \
+            --standalone \
+            --assume-yes-for-downloads \
+            --macos-create-app-bundle \
+            --macos-app-name=${APP_NAME} \
+            --macos-app-version=${APP_VERSION} \
+            --output-dir=build \
+            --include-data-dir=Game=Game \
+            --product-name=${APP_NAME} \
+            --product-version=${APP_VERSION} \
+            --file-description=${APP_NAME} \
+            main.py
+
+      - name: Package .app into a zip
+        run: |
+          mkdir -p artifacts
+          cd build
+          zip -r "../artifacts/${APP_NAME}-${APP_VERSION}-macos.zip" "${APP_NAME}.app"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-macos-app
+          path: artifacts/*.zip
+
+  release:
+    name: Attach to Release
+    needs: [build-linux, build-windows, build-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
