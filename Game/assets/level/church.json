@@ -64373,40 +64373,10 @@
       "name": "Enemies",
       "data": [
         {
-          "x": 10,
-          "y": 9,
-          "z": 5,
-          "id": "flying_enemy_140437883125968",
-          "type": "flying",
-          "drop": 0,
-          "properties": [
-            "flying"
-          ],
-          "move_axis": [
-            1,
-            0
-          ]
-        },
-        {
-          "x": 9,
-          "y": 8,
-          "z": 5,
-          "id": "flying_enemy_140437883126480",
-          "type": "flying",
-          "drop": 0,
-          "properties": [
-            "flying"
-          ],
-          "move_axis": [
-            1,
-            0
-          ]
-        },
-        {
           "x": 12,
           "y": 8,
           "z": 5,
-          "id": "flying_enemy_140437826965328",
+          "id": "flying_enemy_140508350543120",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64421,7 +64391,7 @@
           "x": 11,
           "y": 8,
           "z": 5,
-          "id": "flying_enemy_140439000181008",
+          "id": "flying_enemy_140508350543184",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64436,7 +64406,7 @@
           "x": 23,
           "y": 7,
           "z": 5,
-          "id": "flying_enemy_140439000182608",
+          "id": "flying_enemy_140508350545872",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64451,7 +64421,7 @@
           "x": 25,
           "y": 6,
           "z": 5,
-          "id": "flying_enemy_140438996031952",
+          "id": "flying_enemy_140508350562768",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64466,7 +64436,7 @@
           "x": 30,
           "y": 3,
           "z": 5,
-          "id": "flying_enemy_140437826973840",
+          "id": "flying_enemy_140508350563088",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64481,7 +64451,7 @@
           "x": 35,
           "y": 4,
           "z": 5,
-          "id": "flying_enemy_140437826976784",
+          "id": "flying_enemy_140508350563408",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64496,7 +64466,7 @@
           "x": 28,
           "y": 5,
           "z": 5,
-          "id": "flying_enemy_140437826972560",
+          "id": "flying_enemy_140508350563728",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64511,7 +64481,7 @@
           "x": 40,
           "y": 8,
           "z": 5,
-          "id": "flying_enemy_140439000322256",
+          "id": "flying_enemy_140508350564048",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64526,7 +64496,7 @@
           "x": 50,
           "y": 6,
           "z": 5,
-          "id": "flying_enemy_140437826969744",
+          "id": "flying_enemy_140508350564368",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64541,7 +64511,7 @@
           "x": 59,
           "y": 6,
           "z": 5,
-          "id": "flying_enemy_140437826973584",
+          "id": "flying_enemy_140508350564688",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64556,7 +64526,7 @@
           "x": 57,
           "y": 7,
           "z": 5,
-          "id": "flying_enemy_140437826976400",
+          "id": "flying_enemy_140508350565008",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64571,7 +64541,7 @@
           "x": 63,
           "y": 7,
           "z": 5,
-          "id": "flying_enemy_140439000271056",
+          "id": "flying_enemy_140508350565328",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64586,7 +64556,7 @@
           "x": 72,
           "y": 6,
           "z": 5,
-          "id": "flying_enemy_140439000225488",
+          "id": "flying_enemy_140508350565648",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64601,7 +64571,7 @@
           "x": 68,
           "y": 9,
           "z": 5,
-          "id": "flying_enemy_140437826974864",
+          "id": "flying_enemy_140508350565968",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64616,7 +64586,7 @@
           "x": 73,
           "y": 8,
           "z": 5,
-          "id": "flying_enemy_140437826971280",
+          "id": "flying_enemy_140508350566288",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64631,7 +64601,7 @@
           "x": 89,
           "y": -1,
           "z": 5,
-          "id": "flying_enemy_140437826973072",
+          "id": "flying_enemy_140508350566608",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64646,7 +64616,7 @@
           "x": 95,
           "y": -4,
           "z": 5,
-          "id": "flying_enemy_140437826977680",
+          "id": "flying_enemy_140508350566928",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64661,7 +64631,7 @@
           "x": 89,
           "y": 0,
           "z": 5,
-          "id": "flying_enemy_140439029552656",
+          "id": "flying_enemy_140508350567248",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64676,7 +64646,7 @@
           "x": 83,
           "y": -4,
           "z": 5,
-          "id": "flying_enemy_140437826978768",
+          "id": "flying_enemy_140508350567568",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64691,7 +64661,7 @@
           "x": 83,
           "y": 1,
           "z": 5,
-          "id": "flying_enemy_140438995830352",
+          "id": "flying_enemy_140508350567888",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64706,7 +64676,7 @@
           "x": 97,
           "y": -1,
           "z": 5,
-          "id": "flying_enemy_140439000221392",
+          "id": "flying_enemy_140508350568208",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64721,7 +64691,7 @@
           "x": 86,
           "y": 5,
           "z": 5,
-          "id": "flying_enemy_140438995829200",
+          "id": "flying_enemy_140508350568528",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64736,7 +64706,7 @@
           "x": 88,
           "y": -1,
           "z": 5,
-          "id": "flying_enemy_140439000089552",
+          "id": "flying_enemy_140508350568848",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64751,7 +64721,7 @@
           "x": 86,
           "y": -4,
           "z": 5,
-          "id": "flying_enemy_140438995829520",
+          "id": "flying_enemy_140508350569168",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64766,7 +64736,7 @@
           "x": 94,
           "y": 1,
           "z": 5,
-          "id": "flying_enemy_140438995812048",
+          "id": "flying_enemy_140508350569488",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64781,7 +64751,7 @@
           "x": 98,
           "y": 4,
           "z": 5,
-          "id": "flying_enemy_140439000089040",
+          "id": "flying_enemy_140508350569808",
           "type": "flying",
           "drop": 0,
           "properties": [
@@ -64796,7 +64766,7 @@
           "x": 89,
           "y": 6,
           "z": 5,
-          "id": "boss_140437826980560",
+          "id": "boss_140508350570128",
           "type": "boss",
           "drop": 15,
           "properties": [
@@ -64826,21 +64796,6 @@
       "name": "ItemDrops",
       "data": [
         {
-          "x": 33,
-          "y": 3,
-          "item_key": "wrench"
-        },
-        {
-          "x": 33,
-          "y": 3,
-          "item_key": "sword"
-        },
-        {
-          "x": 85,
-          "y": 2,
-          "item_key": "key"
-        },
-        {
           "x": 91,
           "y": -4,
           "item_key": "chest"
@@ -64851,9 +64806,9 @@
           "item_key": "sword"
         },
         {
-          "x": 29,
-          "y": 8,
-          "item_key": "wrench"
+          "x": 98,
+          "y": -2,
+          "item_key": "key"
         }
       ]
     }

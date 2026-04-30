@@ -1,0 +1,2 @@
+descargas[[:space:]]pa[[:space:]]el[[:space:]]juego/Raven-Setup.exe filter=lfs diff=lfs merge=lfs -text
+descargas[[:space:]]pa[[:space:]]el[[:space:]]juego/Raven.AppImage filter=lfs diff=lfs merge=lfs -text

@@ -5,11 +5,19 @@ from Game.Sprites.crystals import Crystal
 from Game.utils.utils import SpriteSheet
 from Game.utils.timer import Timer
 
+
 class Player(Sprite):
     game: Any
     tilemap: Any
 
-    def __init__(self, img=pygame.surface.Surface((32, 32)), pos=(0, 0), identifier=None, game=None, tilemap=None):
+    def __init__(
+        self,
+        img=pygame.surface.Surface((32, 32)),
+        pos=(0, 0),
+        identifier=None,
+        game=None,
+        tilemap=None,
+    ):
         super().__init__(img, pos, identifier)
         self.base_max_speed = 240
         self.max_speed = self.base_max_speed
@@ -64,18 +72,20 @@ class Player(Sprite):
         self.animation = "idle"
         self.frame = 0
 
-        self.visual_scale = 2
-        self.scaled_sprite_size = 64 * self.visual_scale
+        self.visual_scale = 1.5
+        self.scaled_sprite_size = max(1, int(64 * self.visual_scale))
 
         char_bounds = self.calculate_character_bounds()
-        char_width = char_bounds['width']
-        char_height = char_bounds['height']
+        char_width = char_bounds["width"]
+        char_height = char_bounds["height"]
 
-        self.char_offset_x = char_bounds['offset_x']
-        self.char_offset_y = char_bounds['offset_y']
+        self.char_offset_x = char_bounds["offset_x"]
+        self.char_offset_y = char_bounds["offset_y"]
 
         self.rect = pygame.Rect(pos[0], pos[1], char_width, char_height)
-        self.visual_rect = pygame.Rect(0, 0, self.scaled_sprite_size, self.scaled_sprite_size)
+        self.visual_rect = pygame.Rect(
+            0, 0, self.scaled_sprite_size, self.scaled_sprite_size
+        )
 
         self.attributes = {
             "max_jumps": 1,
@@ -89,10 +99,8 @@ class Player(Sprite):
             "can_move": True,
             "flipped": False,
             "jump_strength": 500,
-
             "health": 10,
             "maxhealth": 10,
-
             "stun": False,
             "stun_cooldown": 200,
             "dead": False,
@@ -117,16 +125,18 @@ class Player(Sprite):
         self.max_fall_speed = 400
         self.double_slash_hold_ms = 250
 
-        self.attributes.update({
-            "slashing": False,
-            "double_slashing": False,
-            "attack_press_time": 0,
-            "slash_damage_frames": 0,
-            "max_slash_damage_frames": 1,
-            "max_double_slash_damage_frames": 2,
-            "last_x_press_time": 0,
-            "double_tap_window": 500,
-        })
+        self.attributes.update(
+            {
+                "slashing": False,
+                "double_slashing": False,
+                "attack_press_time": 0,
+                "slash_damage_frames": 0,
+                "max_slash_damage_frames": 1,
+                "max_double_slash_damage_frames": 2,
+                "last_x_press_time": 0,
+                "double_tap_window": 500,
+            }
+        )
         self.attacking_hitboxes = {
             "slash_right": pygame.Rect(0, 0, 70, 15),
             "slash_left": pygame.Rect(0, 0, 70, 15),
@@ -141,8 +151,12 @@ class Player(Sprite):
         """Recompute screen-space slash hitboxes; call when window size changes."""
         sw = self.game.screen.get_width()
         sh = self.game.screen.get_height()
-        self.attacking_hitboxes["slash_right"] = pygame.Rect(sw // 2, sh // 2 + 10, 70, 15)
-        self.attacking_hitboxes["slash_left"] = pygame.Rect(sw // 2 - 70, sh // 2 + 10, 70, 15)
+        self.attacking_hitboxes["slash_right"] = pygame.Rect(
+            sw // 2, sh // 2 + 10, 70, 15
+        )
+        self.attacking_hitboxes["slash_left"] = pygame.Rect(
+            sw // 2 - 70, sh // 2 + 10, 70, 15
+        )
 
     @property
     def weapon_damage(self) -> int:
@@ -150,6 +164,7 @@ class Player(Sprite):
         if self.equipped_weapon is None:
             return 1
         from Game.utils.items_db import ITEMS
+
         return ITEMS.get(self.equipped_weapon, {}).get("damage", 1)
 
     def controls(self):
@@ -186,7 +201,10 @@ class Player(Sprite):
             and self._dash_cooldown <= 0
             and self._dash_timer <= 0
             and self.attributes["can_move"]
-            and not (self.attributes.get("slashing") or self.attributes.get("double_slashing"))
+            and not (
+                self.attributes.get("slashing")
+                or self.attributes.get("double_slashing")
+            )
         ):
             if input_direction != 0:
                 self._dash_dir = input_direction
@@ -197,7 +215,11 @@ class Player(Sprite):
         self._prev_shift_held = shift_held
 
         sprinting = shift_held and self._dash_timer <= 0
-        self.max_speed = int(self.base_max_speed * self.sprint_multiplier) if sprinting else self.base_max_speed
+        self.max_speed = (
+            int(self.base_max_speed * self.sprint_multiplier)
+            if sprinting
+            else self.base_max_speed
+        )
 
         if self._dash_timer > 0:
             self.velocity.x = self._dash_dir * self.dash_speed
@@ -205,11 +227,15 @@ class Player(Sprite):
                 self.attributes["flipped"] = False
             elif self._dash_dir < 0:
                 self.attributes["flipped"] = True
-        elif self.attributes["can_move"] and not (self.attributes.get("slashing") or self.attributes.get("double_slashing")):
+        elif self.attributes["can_move"] and not (
+            self.attributes.get("slashing") or self.attributes.get("double_slashing")
+        ):
             accel = self.acceleration if on_ground else self.air_acceleration
             if input_direction != 0:
                 self.velocity.x += input_direction * accel * (1 / 60)
-                self.velocity.x = max(-self.max_speed, min(self.max_speed, int(self.velocity.x)))
+                self.velocity.x = max(
+                    -self.max_speed, min(self.max_speed, int(self.velocity.x))
+                )
             else:
                 fric = self.friction if on_ground else self.friction * 0.25
                 if abs(self.velocity.x) > fric * (1 / 60):
@@ -247,10 +273,15 @@ class Player(Sprite):
 
         on_ground = self.is_on_ground()
 
-        if not self.attributes.get("slashing") and not self.attributes.get("double_slashing"):
+        if not self.attributes.get("slashing") and not self.attributes.get(
+            "double_slashing"
+        ):
             time_since_last_press = current_time - self.attributes["last_x_press_time"]
 
-            if time_since_last_press <= self.attributes["double_tap_window"] and self.attributes["last_x_press_time"] > 0:
+            if (
+                time_since_last_press <= self.attributes["double_tap_window"]
+                and self.attributes["last_x_press_time"] > 0
+            ):
                 if not self.timers["attack_cooldown"].active:
                     self.attributes["double_slashing"] = True
                     self.attributes["slashing"] = False
@@ -317,14 +348,23 @@ class Player(Sprite):
                 self.attributes["visible"] = False
                 return
 
-        if self.attributes["stun"] and isinstance(self.attributes["stun"], (int, float)):
-            if pygame.time.get_ticks() - self.attributes["stun"] >= self.attributes["stun_cooldown"]:
+        if self.attributes["stun"] and isinstance(
+            self.attributes["stun"], (int, float)
+        ):
+            if (
+                pygame.time.get_ticks() - self.attributes["stun"]
+                >= self.attributes["stun_cooldown"]
+            ):
                 self.attributes["stun"] = False
                 self.attributes["can_move"] = True
 
         self.controls()
 
-        if self.timers["invulnerability"] <= 0 and not self.attributes["damaged"] and not getattr(self.game, "debug_fly", False):
+        if (
+            self.timers["invulnerability"] <= 0
+            and not self.attributes["damaged"]
+            and not getattr(self.game, "debug_fly", False)
+        ):
             hazard_hit = False
             hazard_center_x = self.rect.centerx
             hazard_probe = self.rect.copy()
@@ -342,7 +382,7 @@ class Player(Sprite):
                 for cy in range(cy_min, cy_max + 1):
                     for cx in range(cx_min, cx_max + 1):
                         for tile_data in tilemap.get_tiles_at(cx, cy):
-                            if 'hazard' not in tile_data.get('properties', []):
+                            if "hazard" not in tile_data.get("properties", []):
                                 continue
                             tile_rect = pygame.Rect(cx * ts, cy * ts, ts, ts)
                             if hazard_probe.colliderect(tile_rect):
@@ -371,7 +411,9 @@ class Player(Sprite):
                 else:
                     self.animation = "hurt"
                     self.frame = 0
-                    knockback_direction = -1 if self.rect.centerx > hazard_center_x else 1
+                    knockback_direction = (
+                        -1 if self.rect.centerx > hazard_center_x else 1
+                    )
                     self.velocity.x = knockback_direction * 150
                     self.velocity.y = -200
                     self.attributes["can_move"] = False
@@ -401,7 +443,9 @@ class Player(Sprite):
                                 self.frame = 0
                                 enemy_center_x = enemy.rect.centerx
                                 player_center_x = self.rect.centerx
-                                knockback_direction = -1 if player_center_x > enemy_center_x else 1
+                                knockback_direction = (
+                                    -1 if player_center_x > enemy_center_x else 1
+                                )
                                 self.velocity.x = knockback_direction * 150
                                 self.velocity.y = -200
                                 self.attributes["can_move"] = False
@@ -409,7 +453,11 @@ class Player(Sprite):
                             break
 
         if self.attributes.get("slashing") or self.attributes.get("double_slashing"):
-            max_damage_frames = self.attributes["max_double_slash_damage_frames"] if self.attributes.get("double_slashing") else self.attributes["max_slash_damage_frames"]
+            max_damage_frames = (
+                self.attributes["max_double_slash_damage_frames"]
+                if self.attributes.get("double_slashing")
+                else self.attributes["max_slash_damage_frames"]
+            )
 
             if self.attributes["slash_damage_frames"] == 0:
                 pass
@@ -422,11 +470,17 @@ class Player(Sprite):
                             for enemy in tilemap.enemies.sprite_dict.values():
                                 rect = enemy.rect.copy()
                                 rect.topleft -= self.game.camera.offset
-                                if self.attacking_hitboxes["slash_left"].colliderect(rect):
+                                if self.attacking_hitboxes["slash_left"].colliderect(
+                                    rect
+                                ):
                                     enemy.take_damage(dmg)
                                     if enemy.health <= 0:
                                         self.crystals += 1
-                                        crystal = Crystal((enemy.rect.x, enemy.rect.y), enemy.drop, self.game)
+                                        crystal = Crystal(
+                                            (enemy.rect.x, enemy.rect.y),
+                                            enemy.drop,
+                                            self.game,
+                                        )
                                         crystal.tilemap = enemy.tilemap
                                         enemy.tilemap.crystals.append(crystal)
                                         tilemap.enemies.remove(enemy)
@@ -435,7 +489,9 @@ class Player(Sprite):
                             for breakable in tilemap.breakables.sprite_dict.values():
                                 rect = breakable.rect.copy()
                                 rect.topleft -= self.game.camera.offset
-                                if self.attacking_hitboxes["slash_left"].colliderect(rect):
+                                if self.attacking_hitboxes["slash_left"].colliderect(
+                                    rect
+                                ):
                                     breakable.take_damage(dmg)
                                     break
                 else:
@@ -444,11 +500,17 @@ class Player(Sprite):
                             for enemy in tilemap.enemies.sprite_dict.values():
                                 rect = enemy.rect.copy()
                                 rect.topleft -= self.game.camera.offset
-                                if self.attacking_hitboxes["slash_right"].colliderect(rect):
+                                if self.attacking_hitboxes["slash_right"].colliderect(
+                                    rect
+                                ):
                                     enemy.take_damage(dmg)
                                     if enemy.health <= 0:
                                         self.crystals += 1
-                                        crystal = Crystal((enemy.rect.x, enemy.rect.y), enemy.drop, self.game)
+                                        crystal = Crystal(
+                                            (enemy.rect.x, enemy.rect.y),
+                                            enemy.drop,
+                                            self.game,
+                                        )
                                         crystal.tilemap = enemy.tilemap
                                         enemy.tilemap.crystals.append(crystal)
                                         tilemap.enemies.remove(enemy)
@@ -457,7 +519,9 @@ class Player(Sprite):
                             for breakable in tilemap.breakables.sprite_dict.values():
                                 rect = breakable.rect.copy()
                                 rect.topleft -= self.game.camera.offset
-                                if self.attacking_hitboxes["slash_right"].colliderect(rect):
+                                if self.attacking_hitboxes["slash_right"].colliderect(
+                                    rect
+                                ):
                                     breakable.take_damage(dmg)
                                     break
 
@@ -470,7 +534,9 @@ class Player(Sprite):
                         self.handle_x_key_press()
 
         if self.attributes.get("slashing") or self.attributes.get("double_slashing"):
-            current_anim_key = "double_slash" if self.attributes.get("double_slashing") else "slash"
+            current_anim_key = (
+                "double_slash" if self.attributes.get("double_slashing") else "slash"
+            )
             sprite_sheet, frame_duration, is_looping = self.animations[current_anim_key]
             images = sprite_sheet.get_images_list()
             slash_finished = False
@@ -489,9 +555,15 @@ class Player(Sprite):
             if not slash_finished:
                 self.frame += frame_duration * dt
             if self.image:
-                self.image = pygame.transform.scale(self.image, (self.scaled_sprite_size, self.scaled_sprite_size))
+                self.image = pygame.transform.scale(
+                    self.image, (self.scaled_sprite_size, self.scaled_sprite_size)
+                )
                 self.update_visual_rect()
-            if not slash_finished and not self.collisions["bottom"] and not getattr(self.game, "debug_fly", False):
+            if (
+                not slash_finished
+                and not self.collisions["bottom"]
+                and not getattr(self.game, "debug_fly", False)
+            ):
                 self.velocity.y += self.gravity * dt * 60
                 self.velocity.y = min(self.velocity.y, self.max_fall_speed)
                 self.move(dt)
@@ -515,7 +587,10 @@ class Player(Sprite):
                         self.frame = 0
                     self.attributes["idle_timer"] = 0
                 else:
-                    if self.animation not in ["idle_break"] and self.animation != "idle":
+                    if (
+                        self.animation not in ["idle_break"]
+                        and self.animation != "idle"
+                    ):
                         self.animation = "idle"
                         self.frame = 0
         else:
@@ -540,13 +615,19 @@ class Player(Sprite):
                 return
 
         if self.image:
-            self.image = pygame.transform.scale(self.image, (self.scaled_sprite_size, self.scaled_sprite_size))
+            self.image = pygame.transform.scale(
+                self.image, (self.scaled_sprite_size, self.scaled_sprite_size)
+            )
             self.update_visual_rect()
 
         self.frame += frame_duration * dt
 
-        if (self.animation == "idle" and self.collisions["bottom"] and
-            self.velocity.x == 0 and self.attributes["can_move"]):
+        if (
+            self.animation == "idle"
+            and self.collisions["bottom"]
+            and self.velocity.x == 0
+            and self.attributes["can_move"]
+        ):
             if self.attributes["idle_timer"] >= 180:
                 self.animation = "idle_break"
                 self.frame = 0
@@ -559,33 +640,32 @@ class Player(Sprite):
         idle_images = idle_spritesheet.get_images_list()
 
         if not idle_images:
-            return {
-                'width': 40,
-                'height': 60,
-                'offset_x': 72,
-                'offset_y': 100
-            }
+            return {"width": 40, "height": 60, "offset_x": 72, "offset_y": 100}
 
         sprite = idle_images[0]
 
-        scaled_sprite = pygame.transform.scale(sprite, (self.scaled_sprite_size, self.scaled_sprite_size))
+        scaled_sprite = pygame.transform.scale(
+            sprite, (self.scaled_sprite_size, self.scaled_sprite_size)
+        )
 
         bounds = self.get_sprite_bounds(scaled_sprite)
 
-        char_width = 40
-        char_height = 70
+        _base_scale = 2.0
+        _ratio = self.visual_scale / _base_scale
+        char_width = max(4, int(40 * _ratio))
+        char_height = max(4, int(70 * _ratio))
 
-        center_x = (bounds['left'] + bounds['width'] // 2)
-        bottom_y = bounds['top'] + bounds['height']
+        center_x = bounds["left"] + bounds["width"] // 2
+        bottom_y = bounds["top"] + bounds["height"]
 
         offset_x = center_x - (char_width // 2)
         offset_y = bottom_y - char_height - 3
 
         return {
-            'width': char_width,
-            'height': char_height,
-            'offset_x': offset_x,
-            'offset_y': offset_y
+            "width": char_width,
+            "height": char_height,
+            "offset_x": offset_x,
+            "offset_y": offset_y,
         }
 
     @staticmethod
@@ -617,17 +697,17 @@ class Player(Sprite):
 
         if not found_pixel:
             return {
-                'left': width // 4,
-                'top': height // 4,
-                'width': width // 2,
-                'height': height // 2
+                "left": width // 4,
+                "top": height // 4,
+                "width": width // 2,
+                "height": height // 2,
             }
 
         return {
-            'left': left,
-            'top': top,
-            'width': right - left + 1,
-            'height': bottom - top + 1
+            "left": left,
+            "top": top,
+            "width": right - left + 1,
+            "height": bottom - top + 1,
         }
 
     def update_visual_rect(self):
@@ -645,7 +725,7 @@ class Player(Sprite):
             self.collisions["bottom"] = False
             self.collisions["left"] = False
             self.collisions["right"] = False
-            if hasattr(self.game, 'camera'):
+            if hasattr(self.game, "camera"):
                 self.game.camera.update(self)
             return
 
@@ -690,7 +770,7 @@ class Player(Sprite):
         if not self.is_on_ground():
             self.collisions["bottom"] = False
 
-        if hasattr(self.game, 'camera'):
+        if hasattr(self.game, "camera"):
             self.game.camera.update(self)
 
     def _iter_solid_subrects_near(self, tilemap):
@@ -702,6 +782,7 @@ class Player(Sprite):
         so the player can climb over them instead of bumping the stair-step
         approximation."""
         from Game.utils.tilemaps import FLOOR_SLOPE_SHAPES
+
         ts = tilemap.tile_size
         left_tile = int(self.rect.left - tilemap.pos.x * ts) // ts
         right_tile = int(self.rect.right - 1 - tilemap.pos.x * ts) // ts
@@ -709,14 +790,16 @@ class Player(Sprite):
         bottom_tile = int(self.rect.bottom - tilemap.pos.y * ts) // ts
         for gx in range(left_tile - 1, right_tile + 2):
             for gy in range(top_tile - 1, bottom_tile + 2):
-                cell_tiles = tilemap.get_tiles_at(int(gx + tilemap.pos.x), int(gy + tilemap.pos.y))
+                cell_tiles = tilemap.get_tiles_at(
+                    int(gx + tilemap.pos.x), int(gy + tilemap.pos.y)
+                )
                 if not cell_tiles:
                     continue
                 for td in cell_tiles:
-                    props = td.get('properties', [])
-                    if 'solid' not in props and 'hazard' not in props:
+                    props = td.get("properties", [])
+                    if "solid" not in props and "hazard" not in props:
                         continue
-                    if td.get('shape', 'full') in FLOOR_SLOPE_SHAPES:
+                    if td.get("shape", "full") in FLOOR_SLOPE_SHAPES:
                         continue
                     for sub in tilemap.get_solid_subrects(td):
                         yield sub, td
@@ -724,6 +807,7 @@ class Player(Sprite):
     def _iter_floor_slope_tiles_near(self, tilemap):
         """Iterate floor-slope tile dicts in the 3x3 neighborhood of the player."""
         from Game.utils.tilemaps import FLOOR_SLOPE_SHAPES
+
         ts = tilemap.tile_size
         left_tile = int(self.rect.left - tilemap.pos.x * ts) // ts
         right_tile = int(self.rect.right - 1 - tilemap.pos.x * ts) // ts
@@ -731,19 +815,22 @@ class Player(Sprite):
         bottom_tile = int(self.rect.bottom - tilemap.pos.y * ts) // ts
         for gx in range(left_tile - 1, right_tile + 2):
             for gy in range(top_tile - 1, bottom_tile + 2):
-                cell_tiles = tilemap.get_tiles_at(int(gx + tilemap.pos.x), int(gy + tilemap.pos.y))
+                cell_tiles = tilemap.get_tiles_at(
+                    int(gx + tilemap.pos.x), int(gy + tilemap.pos.y)
+                )
                 if not cell_tiles:
                     continue
                 for td in cell_tiles:
-                    if 'solid' not in td.get('properties', []):
+                    if "solid" not in td.get("properties", []):
                         continue
-                    if td.get('shape', 'full') in FLOOR_SLOPE_SHAPES:
+                    if td.get("shape", "full") in FLOOR_SLOPE_SHAPES:
                         yield td
 
     def _snap_onto_floor_slopes(self):
         """If the player's bottom is below the smooth surface of any nearby
         floor slope, snap rect.bottom up to the slope. Returns True if snapped."""
         from Game.utils.tilemaps import slope_floor_y
+
         snapped = False
         best_y = None
         for tilemap in self.game.tilemaps.values():
@@ -755,7 +842,7 @@ class Player(Sprite):
                 surface_y = slope_floor_y(td, sample_x, ts)
                 if surface_y is None:
                     continue
-                tile_top = td['y'] * ts
+                tile_top = td["y"] * ts
                 tile_bottom = tile_top + ts
                 if self.rect.bottom < tile_top or self.rect.top > tile_bottom:
                     continue
@@ -771,6 +858,7 @@ class Player(Sprite):
     def _is_on_floor_slope(self):
         """True when the player's foot is at (or just above) any floor slope surface."""
         from Game.utils.tilemaps import slope_floor_y
+
         for tilemap in self.game.tilemaps.values():
             if not tilemap.rendered:
                 continue
@@ -793,8 +881,8 @@ class Player(Sprite):
                 continue
 
             for sub, td in self._iter_solid_subrects_near(tilemap):
-                props = td.get('properties', [])
-                if not ('solid' in props or 'platform' in props):
+                props = td.get("properties", [])
+                if not ("solid" in props or "platform" in props):
                     continue
                 if abs(self.rect.bottom - sub.top) <= 2:
                     if self.rect.right > sub.left and self.rect.left < sub.right:
@@ -803,8 +891,10 @@ class Player(Sprite):
             for breakable in tilemap.breakables.sprite_dict.values():
                 if breakable.is_solid():
                     if abs(self.rect.bottom - breakable.rect.top) <= 2:
-                        if (self.rect.right > breakable.rect.left and
-                            self.rect.left < breakable.rect.right):
+                        if (
+                            self.rect.right > breakable.rect.left
+                            and self.rect.left < breakable.rect.right
+                        ):
                             return True
         return False
 
@@ -815,7 +905,7 @@ class Player(Sprite):
                 continue
 
             for sub, td in self._iter_solid_subrects_near(tilemap):
-                if 'solid' not in td.get('properties', []):
+                if "solid" not in td.get("properties", []):
                     continue
                 if self.rect.colliderect(sub):
                     return True
@@ -837,7 +927,7 @@ class Player(Sprite):
                 continue
 
             for sub, td in self._iter_solid_subrects_near(tilemap):
-                if 'solid' not in td.get('properties', []):
+                if "solid" not in td.get("properties", []):
                     continue
                 if not self.rect.colliderect(sub):
                     continue
@@ -897,7 +987,7 @@ class Player(Sprite):
             if not tilemap.rendered:
                 continue
             for sub, td in self._iter_solid_subrects_near(tilemap):
-                if 'solid' not in td.get('properties', []):
+                if "solid" not in td.get("properties", []):
                     continue
                 if not self.rect.colliderect(sub):
                     continue
@@ -940,9 +1030,9 @@ class Player(Sprite):
                 continue
 
             for sub, td in self._iter_solid_subrects_near(tilemap):
-                props = td.get('properties', [])
-                is_solid = 'solid' in props
-                is_platform = 'platform' in props
+                props = td.get("properties", [])
+                is_solid = "solid" in props
+                is_platform = "platform" in props
                 if not (is_solid or is_platform):
                     continue
                 if not self.rect.colliderect(sub):
@@ -981,24 +1071,33 @@ class Player(Sprite):
         if not self.attributes["visible"]:
             return
 
-        if hasattr(self, 'image') and self.image:
+        if hasattr(self, "image") and self.image:
             display_image = self.image
 
             if self.attributes["flipped"]:
                 display_image = pygame.transform.flip(self.image, True, False)
 
-            screen_pos = (self.visual_rect.x - self.game.camera.offset.x,
-                         self.visual_rect.y - self.game.camera.offset.y)
+            screen_pos = (
+                self.visual_rect.x - self.game.camera.offset.x,
+                self.visual_rect.y - self.game.camera.offset.y,
+            )
             surf.blit(display_image, screen_pos)
 
             from Game.utils.config import get_config
+
             config = get_config()
             if config.get("debug", {}).get("show_collision_boxes", False):
-                screen_collision_rect = (self.rect.x - self.game.camera.offset.x,
-                                       self.rect.y - self.game.camera.offset.y,
-                                       self.rect.width, self.rect.height)
-                screen_visual_rect = (self.visual_rect.x - self.game.camera.offset.x,
-                                    self.visual_rect.y - self.game.camera.offset.y,
-                                    self.visual_rect.width, self.visual_rect.height)
+                screen_collision_rect = (
+                    self.rect.x - self.game.camera.offset.x,
+                    self.rect.y - self.game.camera.offset.y,
+                    self.rect.width,
+                    self.rect.height,
+                )
+                screen_visual_rect = (
+                    self.visual_rect.x - self.game.camera.offset.x,
+                    self.visual_rect.y - self.game.camera.offset.y,
+                    self.visual_rect.width,
+                    self.visual_rect.height,
+                )
                 pygame.draw.rect(surf, (255, 0, 0), screen_collision_rect, 2)
                 pygame.draw.rect(surf, (0, 0, 255), screen_visual_rect, 1)

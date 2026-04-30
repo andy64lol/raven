@@ -366,12 +366,6 @@ class UndeadExecutionerBoss(Sprite, EnemyCombatMixin):
                                 )
                 except Exception as _ce:
                     print(f"[boss] key drop failed: {_ce}")
-                try:
-                    from Game.utils.save_game import save_game as _sg
-                    slot = getattr(self.game, "_active_save_slot", 0)
-                    _sg(self.game, slot)
-                except Exception as _e:
-                    print(f"[boss] auto-save failed: {_e}")
             return
 
         self.tick_combat_state()

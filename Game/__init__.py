@@ -11,9 +11,6 @@ from Game.utils.tilemaps import TileMap, SHAPE_NAMES, get_shape_mask
 from Game.Sprites.Enemies.enemy import Enemy
 from Game.utils.hud import Hud
 from Game.utils.title_screen import TitleScreen
-from Game.utils.save_game import save_game as _save_game_to_disk
-from Game.utils.save_game import load_save as _load_save_from_disk
-from Game.utils.save_game import apply_save as _apply_save_to_game
 from Game.utils.dialogue import DialogueBox
 from Game.utils.dlg_parser import load_sequence as load_dlg
 from Game.utils.inventory import InventoryOverlay
@@ -145,11 +142,6 @@ class Game:
 
         self.title_screen_active = True
         self.title_screen = TitleScreen(self)
-        self._pending_load = False
-        self._pending_load_slot = 0
-        self._loaded_from_save = False
-        self._active_save_slot = 0
-
         self.dialogue = DialogueBox(self)
         self._intro_played = False
         self._intro_delay: float = 0.6
@@ -969,6 +961,8 @@ class Game:
         y += 20
         layout["object_toggle_rect"] = pygame.Rect(10, y, sw - 20, 22)
         y += 28
+        layout["object_erase_rect"] = pygame.Rect(10, y, sw - 20, 22)
+        y += 28
         pill_w = 85; pill_h = 22; pill_gap = 4
         obj_cols = max(1, (sw - 20) // (pill_w + pill_gap))
         kind_rects = []
@@ -1327,7 +1321,17 @@ class Game:
             obj_label,
             selected=self.object_mode,
             color=obj_color,
-            tooltip="Click izq. para colocar, click der. para eliminar",
+            tooltip="Activa el modo de colocación de objetos",
+        )
+        obj_erase_active = self.object_mode and self.editor_erase_mode
+        obj_erase_color = (170, 70, 70) if obj_erase_active else (80, 60, 60)
+        obj_erase_label = "Eliminar objeto: ACT" if obj_erase_active else "Eliminar objeto"
+        self._draw_pill(
+            layout["object_erase_rect"],
+            obj_erase_label,
+            selected=obj_erase_active,
+            color=obj_erase_color,
+            tooltip="Activa el borrado: click izq. elimina objetos. Click der. elimina siempre.",
         )
         from Game.utils.items_db import ITEMS as _ITEMS_DB
         OBJ_LABELS = {"crystal": "Cristal", "box": "Caja (Z)"}
@@ -1759,6 +1763,36 @@ class Game:
 
         self.hud.draw(self.screen)
 
+        if not self.title_screen_active and not self.paused and not self.dialogue.active and not self.demo_complete_visible and not self.editor_mode:
+            _door_tiles = [(33, 8), (33, 9), (34, 9)]
+            _ts = self.tilemap.tile_size
+            _player_inflated = self.player.rect.inflate(_ts * 2, _ts * 2)
+            _door_still_exists = any(
+                self.tilemap.tile_map.get((gx, gy)) is not None
+                for gx, gy in _door_tiles
+            )
+            _near_door = _door_still_exists and any(
+                _player_inflated.colliderect(pygame.Rect(gx * _ts, gy * _ts, _ts, _ts))
+                for gx, gy in _door_tiles
+            )
+            if _near_door:
+                _has_key = any(it.get("id") == "key" for it in self.player.inventory)
+                _hint_text = "Presiona Z para abrir" if _has_key else "Necesitas una llave"
+                _hint_color = (255, 230, 100) if _has_key else (220, 120, 120)
+                _door_cx = 34 * _ts - int(self.camera.offset.x)
+                _door_cy = 8 * _ts - int(self.camera.offset.y) - 18
+                _hint_surf = self.fonts["workbench_small"].render(_hint_text, True, _hint_color)
+                _bg_rect = pygame.Rect(
+                    _door_cx - _hint_surf.get_width() // 2 - 8,
+                    _door_cy - 4,
+                    _hint_surf.get_width() + 16,
+                    _hint_surf.get_height() + 8,
+                )
+                _bg = pygame.Surface((_bg_rect.width, _bg_rect.height), pygame.SRCALPHA)
+                _bg.fill((0, 0, 0, 160))
+                self.screen.blit(_bg, (_bg_rect.x, _bg_rect.y))
+                self.screen.blit(_hint_surf, (_door_cx - _hint_surf.get_width() // 2, _door_cy))
+
         if not self.title_screen_active and self.dialogue.active:
             self.dialogue.draw(self.screen)
 
@@ -1902,18 +1936,6 @@ class Game:
 
                 if event.key == pygame.K_F4:
                     self.fog_enabled = not self.fog_enabled
-
-                if (
-                    event.key == pygame.K_F5
-                    and not self.editor_mode
-                    and not self.title_screen_active
-                    and not self.death_screen_visible
-                ):
-                    _slot = getattr(self, "_active_save_slot", 0)
-                    if _save_game_to_disk(self, _slot):
-                        self.hud.show_toast(f"Partida guardada (Slot {_slot + 1})")
-                    else:
-                        self.hud.show_toast("Error al guardar")
 
                 if (
                     event.key == pygame.K_i
@@ -2161,6 +2183,12 @@ class Game:
                             if self.object_mode:
                                 self.spawnpoint_mode = False
                                 self.enemy_mode = False
+                            continue
+                        if layout["object_erase_rect"].collidepoint(mx, my):
+                            self.object_mode = True
+                            self.spawnpoint_mode = False
+                            self.enemy_mode = False
+                            self.editor_erase_mode = not self.editor_erase_mode
                             continue
                         obj_kind_clicked = False
                         for kind, rect in layout["object_kind_rects"]:
@@ -2448,19 +2476,7 @@ class Game:
 
                 if result == "play":
                     self.title_screen_active = False
-                    self._active_save_slot = 0
                     self._grant_all_combo_items()
-                elif isinstance(result, str) and result.startswith("continue"):
-                    slot = 0
-                    if ":" in result:
-                        try:
-                            slot = int(result.split(":", 1)[1])
-                        except ValueError:
-                            slot = 0
-                    self.title_screen_active = False
-                    self._pending_load = True
-                    self._pending_load_slot = slot
-                    self._active_save_slot = slot
                 elif result == "editor":
                     self.title_screen_active = False
                     self.editor_mode = True
@@ -2469,16 +2485,6 @@ class Game:
 
             if not self.running:
                 break
-
-            if self._pending_load:
-                _slot_to_load = self._pending_load_slot
-                if _apply_save_to_game(self, _load_save_from_disk(_slot_to_load)):
-                    self._loaded_from_save = True
-                    self._intro_played = True
-                    self._active_save_slot = _slot_to_load
-                self._snap_player_above_ground()
-                self._pending_load = False
-                self._pending_load_slot = 0
 
             level_track = self._level_music.get(self.tilemap_current)
             if level_track is not None:

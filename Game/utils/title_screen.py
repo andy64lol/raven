@@ -4,7 +4,6 @@ import math
 import webbrowser
 
 from Game.utils.utils import load_image, SpriteSheet
-from Game.utils.save_game import has_save, get_all_saves, get_save_metadata, NUM_SLOTS
 
 PLAY_BUTTON_URL = "https://music.youtube.com/watch?v=dQw4w9WgXcQ"
 
@@ -112,11 +111,7 @@ class TitleScreen:
         self.button_gap = 18
         buttons_y_start = self.screen_height // 2 + 120
 
-        button_specs = []
-        any_save = any(has_save(s) for s in range(NUM_SLOTS))
-        if any_save:
-            button_specs.append(("CONTINUAR", "continue"))
-        button_specs += [
+        button_specs = [
             ("JUGAR", "play"),
             ("SALIR", "quit"),
         ]
@@ -130,11 +125,6 @@ class TitleScreen:
         self.hovered_button = None
         self.selected_index = 0
         self.button_glow = 0
-
-        self.show_slot_picker = False
-        self.slot_selected_index = 0
-        self._slot_button_rects: list[pygame.Rect] = []
-        self._slot_back_rect: pygame.Rect | None = None
 
         self._button_font = pygame.font.Font("Game/assets/fonts/workbench.ttf", 14)
 
@@ -435,9 +425,6 @@ class TitleScreen:
 
         self._draw_footer()
 
-        if self.show_slot_picker:
-            self._draw_slot_picker()
-
         if self._vignette is not None:
             self.screen.blit(self._vignette, (0, 0))
 
@@ -565,12 +552,7 @@ class TitleScreen:
         self.screen.blit(ver_surf, ver_rect)
 
     def move_selection(self, delta):
-        """Keyboard navigation between buttons (or slots when picker is open)."""
-        if self.show_slot_picker:
-
-            total = NUM_SLOTS + 1
-            self.slot_selected_index = (self.slot_selected_index + delta) % total
-            return
+        """Keyboard navigation between buttons."""
         if not self.buttons:
             return
         self.selected_index = (self.selected_index + delta) % len(self.buttons)
@@ -579,64 +561,20 @@ class TitleScreen:
         """Trigger the keyboard-focused button (Enter / Space)."""
         if self.fading_out:
             return
-        if self.show_slot_picker:
-            self._activate_slot(self.slot_selected_index)
-            return
         if 0 <= self.selected_index < len(self.buttons):
             action = self.buttons[self.selected_index]["action"]
-            if action == "continue":
-                self._open_slot_picker()
-                return
             self.fading_out = True
             self.next_state = action
-
-    def _open_slot_picker(self):
-        """Reveal the save-slot selection overlay."""
-        self.show_slot_picker = True
-
-        self.slot_selected_index = 0
-        for s in range(NUM_SLOTS):
-            if has_save(s):
-                self.slot_selected_index = s
-                break
-
-    def _activate_slot(self, index):
-        """Resolve a slot-picker selection.
-
-        ``index`` in [0, NUM_SLOTS) loads that slot; ``NUM_SLOTS`` is the
-        trailing "Atrás" entry that closes the picker.
-        """
-        if index >= NUM_SLOTS:
-            self.show_slot_picker = False
-            return
-        if not has_save(index):
-            return
-        self.fading_out = True
-        self.next_state = f"continue:{index}"
-        self.show_slot_picker = False
 
     def handle_click(self):
         """Handle mouse click, returns action if a button was clicked."""
         if self.fading_out:
             return None
         mx, my = pygame.mouse.get_pos()
-        if self.show_slot_picker:
-
-            for i, rect in enumerate(self._slot_button_rects):
-                if rect.collidepoint(mx, my):
-                    self._activate_slot(i)
-                    return None
-
-            if self._slot_back_rect and self._slot_back_rect.collidepoint(mx, my):
-                self.show_slot_picker = False
-            return None
         for btn in self.buttons:
             rect = pygame.Rect(0, 0, self.button_width, self.button_height)
             rect.center = (self.screen_width // 2, btn["y"])
             if rect.collidepoint(mx, my):
-                if btn["action"] == "continue":
-                    self._open_slot_picker()
-                    return None
                 self.fading_out = True
                 self.next_state = btn["action"]
                 return None
@@ -646,98 +584,10 @@ class TitleScreen:
         return None
 
     def handle_escape(self):
-        """If the slot picker is open, ESC closes it. Returns True if handled."""
-        if self.show_slot_picker:
-            self.show_slot_picker = False
-            return True
+        """ESC on title screen does nothing (no slot picker). Returns False."""
         return False
 
     def start_fade_out(self, state):
         """Start fade out to a specific state."""
         self.fading_out = True
         self.next_state = state
-
-    def _draw_slot_picker(self):
-        """Modal overlay listing the 5 save slots with metadata."""
-        sw, sh = self.screen_width, self.screen_height
-        overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 200))
-        self.screen.blit(overlay, (0, 0))
-
-        panel_w = 480
-        row_h = 56
-        panel_h = 80 + NUM_SLOTS * (row_h + 10) + 70
-        panel_rect = pygame.Rect(0, 0, panel_w, panel_h)
-        panel_rect.center = (sw // 2, sh // 2)
-        pygame.draw.rect(self.screen, (15, 22, 38), panel_rect, border_radius=12)
-        pygame.draw.rect(self.screen, (90, 140, 200), panel_rect, 3, border_radius=12)
-
-        title_surf = self.title_font.render("CARGAR PARTIDA", True, (220, 240, 255))
-        title_rect = title_surf.get_rect(center=(sw // 2, panel_rect.top + 36))
-        self.screen.blit(title_surf, title_rect)
-
-        self._slot_button_rects = []
-        mx, my = pygame.mouse.get_pos()
-        small_font = pygame.font.Font("Game/assets/fonts/workbench.ttf", 12)
-        meta_font = pygame.font.Font("Game/assets/fonts/workbench.ttf", 10)
-
-        y = panel_rect.top + 76
-        for i in range(NUM_SLOTS):
-            row = pygame.Rect(0, 0, panel_w - 40, row_h)
-            row.centerx = sw // 2
-            row.top = y
-            self._slot_button_rects.append(row)
-
-            meta = get_save_metadata(i)
-            hovered = row.collidepoint(mx, my)
-            focused = (self.slot_selected_index == i)
-
-            if meta is None:
-                bg = (28, 32, 44)
-                border = (60, 70, 90)
-            elif hovered or focused:
-                bg = (35, 70, 105)
-                border = (140, 210, 255)
-            else:
-                bg = (22, 38, 60)
-                border = (70, 110, 160)
-            pygame.draw.rect(self.screen, bg, row, border_radius=8)
-            pygame.draw.rect(self.screen, border, row, 2, border_radius=8)
-
-            label = f"Slot {i + 1}"
-            label_color = (120, 130, 150) if meta is None else (180, 195, 215)
-            lbl_surf = small_font.render(label, True, label_color)
-            self.screen.blit(lbl_surf, (row.left + 16, row.top + 8))
-
-            if meta is None:
-                hint = meta_font.render("— Vacío —", True, (110, 120, 140))
-                hint_rect = hint.get_rect(center=row.center)
-                self.screen.blit(hint, hint_rect)
-            else:
-                info = (
-                    f"{meta['level']}   HP {meta['health']}/{meta['maxhealth']}"
-                    f"   Crystals {meta['crystals']}"
-                )
-                info_surf = meta_font.render(info, True, (200, 220, 240))
-                self.screen.blit(info_surf, (row.left + 16, row.top + 30))
-
-            y += row_h + 10
-
-        back_rect = pygame.Rect(0, 0, 160, 36)
-        back_rect.centerx = sw // 2
-        back_rect.top = y + 6
-        self._slot_back_rect = back_rect
-        focused_back = (self.slot_selected_index == NUM_SLOTS)
-        hovered_back = back_rect.collidepoint(mx, my)
-        active_back = focused_back or hovered_back
-        pygame.draw.rect(
-            self.screen,
-            (60, 30, 30) if active_back else (40, 20, 20),
-            back_rect, border_radius=8,
-        )
-        pygame.draw.rect(
-            self.screen, (200, 120, 120) if active_back else (120, 80, 80),
-            back_rect, 2, border_radius=8,
-        )
-        back_surf = small_font.render("Atrás (Esc)", True, (240, 220, 220))
-        self.screen.blit(back_surf, back_surf.get_rect(center=back_rect.center))
